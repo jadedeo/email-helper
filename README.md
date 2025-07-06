@@ -11,6 +11,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam molestie leo odi
 -   [Vue 3 (Composition API)](https://vuejs.org/)
 -   [TipTap](https://tiptap.dev/product/editor)
 -   [Tailwind CSS](https://tailwindcss.com/)
+    https://www.npmjs.com/package/vue-material-design-icons
 
 ## Requirements
 

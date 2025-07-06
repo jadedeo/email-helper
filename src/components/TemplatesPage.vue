@@ -1,7 +1,7 @@
 <!-- src/components/TemplatePage.vue -->
 <template>
-    <section class="flex flex-col gap-5">
-        <div class="flex flex-col gap-3">
+    <div class="flex flex-col gap-5">
+        <section class="flex flex-col gap-3 px-6">
             <h2>Salutation</h2>
             <InfoBox
                 heading="Salutations are automatically applied"
@@ -21,56 +21,110 @@
                     label="Add a sign-off"
                 />
             </div>
-        </div>
-        <hr class="border-solid border-t-1 border-gray-100" />
-        <div>
-            <div v-if="templates.length === 0">
-                <h2>You don't have any template yet!</h2>
-                <p>Upload template files or create a new document.</p>
-            </div>
+        </section>
+        <hr />
 
-            <div v-else>
-                <h2>{{ templates.length }} templates</h2>
-                <h2>{{ sections.length }} sections</h2>
-                <li v-for="section in sections">
-                    {{ section }}
-                </li>
-
+        <!-- TODO: conditionally render sections -->
+        <section class="px-6">
+            <!-- NO TEMPLATES YET -->
+            <div class="flex flex-col gap-3">
                 <div
-                    v-for="sectionName in [...sections, 'Uncategorized']"
-                    :key="sectionName"
-                    class="p-4 border rounded mb-4"
+                    class="w-fit border-solid border-1 border-lime-100 mx-auto rounded-full p-5"
                 >
-                    <h3 class="font-bold text-lg mb-2">{{ sectionName }}</h3>
-                    <draggable
-                        :list="sectionTemplates[sectionName] || []"
-                        group="templates"
-                        itemKey="id"
-                        @change="(e) => onDragChange(e, sectionName)"
+                    <div
+                        class="w-fit border-solid border-1 border-lime-200 mx-auto rounded-full p-3"
                     >
-                        <template #item="{ element }">
-                            <div class="p-2 mb-1 bg-white border rounded">
-                                {{ element.title }}
-                            </div>
-                        </template>
-                    </draggable>
+                        <div
+                            class="bg-lime-100 w-fit text-lime-700 mx-auto rounded-full p-10"
+                        >
+                            <TextBoxMultipleIcon :size="50" />
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <h3 class="font-bold text-lg">
+                        You don't have any templates yet!
+                    </h3>
+                    <p>Upload template files or create a new document.</p>
+                </div>
+                <div class="flex gap-3">
+                    <Button
+                        @button-click="uploadTemplates"
+                        variant="outlined"
+                        label="Upload templates"
+                        ><CloudUploadIcon :size="20"
+                    /></Button>
+                    <Button
+                        @button-click="openOrFocusCreateTemplateWindow"
+                        label="Create template"
+                        ><PlusIcon :size="20"
+                    /></Button>
                 </div>
             </div>
+        </section>
 
-            <div class="flex gap-3">
-                <Button
-                    @button-click="uploadTemplates"
-                    variant="outlined"
-                    label="Upload templates"
-                />
-                <Button
-                    @button-click="openOrFocusCreateTemplateWindow"
-                    label="Create template"
-                />
+        <!-- TODO: remove hr later -->
+        <hr />
+
+        <section class="">
+            <!-- HAS TEMPLATES -->
+            <div>
+                <!-- <small>
+                    <span>{{ templates.length }} templates</span>
+                    <span>{{ sections.length }} sections</span>
+                </small> -->
+
+                <div
+                    v-for="sectionName in [...sections, 'Other']"
+                    :key="sectionName"
+                >
+                    <div class="my-5 px-6">
+                        <h3 class="font-bold text-lg">
+                            {{ sectionName }}
+                        </h3>
+                        <draggable
+                            :list="sectionTemplates[sectionName] || []"
+                            group="templates"
+                            itemKey="id"
+                            @change="(e) => onDragChange(e, sectionName)"
+                        >
+                            <template #item="{ element, index: templateIndex }">
+                                <div>
+                                    <div
+                                        class="flex justify-between items-center cursor-grab py-3"
+                                    >
+                                        <div class="flex gap-1 items-center">
+                                            <DragVerticalIcon :size="20" />
+                                            {{ element.title }}
+                                        </div>
+                                        <PencilOutlineIcon :size="20" />
+                                    </div>
+
+                                    <!-- hr between templates, but not after last -->
+                                    <hr
+                                        v-if="
+                                            templateIndex <
+                                            (sectionTemplates[sectionName]
+                                                ?.length || 0) -
+                                                1
+                                        "
+                                        class="border-gray-200"
+                                    />
+                                </div>
+                            </template>
+                        </draggable>
+                        <Button
+                            @button-click="openOrFocusCreateTemplateWindow"
+                            label="Add template"
+                            variant="link"
+                        ></Button>
+                    </div>
+                    <hr />
+                </div>
             </div>
-        </div>
-        <hr class="border-solid border-t-1 border-gray-100" />
-        <div>
+        </section>
+        <!-- <hr /> -->
+        <section class="px-6">
             <div v-if="displaySectionField">
                 <input type="text" v-model="newSection" />
                 <p>{{ newSection }}</p>
@@ -93,13 +147,19 @@
                 label="Add section"
                 variant="outlined"
                 @button-click="addSection"
-            />
-        </div>
-    </section>
+                ><PlusIcon :size="20"
+            /></Button>
+        </section>
+    </div>
 </template>
 
 <script>
 import { ref, onMounted, computed } from "vue";
+import CloudUploadIcon from "vue-material-design-icons/CloudUploadOutline.vue";
+import PlusIcon from "vue-material-design-icons/Plus.vue";
+import TextBoxMultipleIcon from "vue-material-design-icons/TextBoxMultiple.vue";
+import DragVerticalIcon from "vue-material-design-icons/DragVertical.vue";
+import PencilOutlineIcon from "vue-material-design-icons/PencilOutline.vue";
 import draggable from "vuedraggable";
 import Button from "../components/Button.vue";
 import InfoBox from "./InfoBox.vue";
@@ -109,6 +169,11 @@ export default {
         Button,
         InfoBox,
         draggable,
+        CloudUploadIcon,
+        PlusIcon,
+        TextBoxMultipleIcon,
+        DragVerticalIcon,
+        PencilOutlineIcon,
     },
 
     setup() {

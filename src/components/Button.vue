@@ -1,69 +1,11 @@
-<!-- src/components/Button.vue -->
-
 <template>
     <button
-        v-if="variant == 'filled'"
-        class="bg-lime-700 text-white font-bold w-full px-4 py-2 rounded-md"
-        :class="
-            disabled
-                ? 'opacity-50 cursor-not-allowed'
-                : 'cursor-pointer opacity-100'
-        "
+        :class="computedClass"
+        class="flex justify-center items-center gap-1"
         @click="$emit('button-click')"
         :disabled="disabled"
     >
-        {{ label }}
-    </button>
-    <button
-        v-else-if="variant == 'outlined'"
-        class="border-solid border-1 border-lime-700 bg-lime-50 font-bold text-lime-700 w-full px-4 py-2 rounded-md cursor-pointer"
-        :class="
-            disabled
-                ? 'opacity-50 cursor-not-allowed'
-                : 'cursor-pointer opacity-100'
-        "
-        @click="$emit('button-click')"
-        :disabled="disabled"
-    >
-        {{ label }}
-    </button>
-    <button
-        v-else-if="variant == 'link'"
-        class="underline underline-offset-2 text-lime-700 cursor-pointer font-semibold"
-        :class="
-            disabled
-                ? 'opacity-50 cursor-not-allowed'
-                : 'cursor-pointer opacity-100'
-        "
-        @click="$emit('button-click')"
-        :disabled="disabled"
-    >
-        {{ label }}
-    </button>
-    <button
-        v-else-if="variant == 'activetab'"
-        class="bg-lime-200 text-lime-800 font-bold w-full px-4 py-2 rounded-md"
-        :class="
-            disabled
-                ? 'opacity-50 cursor-not-allowed'
-                : 'cursor-pointer opacity-100'
-        "
-        @click="$emit('button-click')"
-        :disabled="disabled"
-    >
-        {{ label }}
-    </button>
-    <button
-        v-else-if="variant == 'inactivetab'"
-        class="bg-gray-100 text-gray-500 font-bold w-full px-4 py-2 rounded-md"
-        :class="
-            disabled
-                ? 'opacity-50 cursor-not-allowed'
-                : 'cursor-pointer opacity-100'
-        "
-        @click="$emit('button-click')"
-        :disabled="disabled"
-    >
+        <slot></slot>
         {{ label }}
     </button>
 </template>
@@ -77,25 +19,38 @@ export default {
         },
         variant: {
             type: String,
-            required: false,
             default: "filled",
         },
         disabled: {
             type: Boolean,
-            required: false,
             default: false,
         },
     },
     emits: ["button-click"],
-    setup() {
-        return {};
+    computed: {
+        computedClass() {
+            const base = " font-bold";
+            const cursor = this.disabled
+                ? "opacity-50 cursor-not-allowed"
+                : "cursor-pointer opacity-100";
+
+            const variants = {
+                filled: "w-full px-2 py-2 rounded-md bg-lime-700 text-white",
+                outlined:
+                    "w-full px-2 py-2 rounded-md border border-lime-700 bg-lime-50 text-lime-700",
+                link: "underline underline-offset-2 text-lime-700 font-semibold bg-transparent px-0 py-0",
+                activetab:
+                    "w-full px-2 py-2 rounded-md bg-lime-200 text-lime-800",
+                inactivetab:
+                    "w-full px-2 py-2 rounded-md bg-gray-100 text-gray-500",
+            };
+
+            return `${base} ${cursor} ${
+                variants[this.variant] || variants.filled
+            }`;
+        },
     },
 };
 </script>
 
-<style scoped>
-/* button:disabled {
-    opacity: 50% !important;
-    cursor: not-allowed !important;
-} */
-</style>
+<style scoped></style>

@@ -1,5 +1,30 @@
 @import "tailwindcss";
 
+/* TODO: set up tailwind base styles */
+@layer base {
+    hr {
+        @apply border-solid border-t-1 border-gray-100;
+    }
+    /* h1 {
+		@apply text-8xl;
+	}
+	h2 {
+		@apply text-6xl;
+	}
+	h3 {
+		@apply text-4xl;
+	}
+	h4 {
+		@apply text-2xl;
+	}
+	h5 {
+		@apply text-xl;
+	}
+	h6 {
+		@apply text-lg;
+	} */
+}
+
 :root {
     font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;
@@ -37,13 +62,14 @@ h2 {
 }
 
 #app {
-    min-width: 400px;
+    @apply min-w-[400px] h-fit mx-0 my-8 flex flex-col gap-8;
+    /* min-width: 400px;
     height: fit-content;
     margin: 0 auto;
     padding: 2rem;
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 2rem; */
 }
 
 @media (prefers-color-scheme: light) {

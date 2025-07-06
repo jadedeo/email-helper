@@ -1,14 +1,14 @@
 <template>
-    <section class="flex flex-col gap-5">
-        <div class="flex flex-col gap-3">
+    <div class="flex flex-col gap-5">
+        <section class="flex flex-col gap-3 px-6">
             <h2>What is wrong?</h2>
             <p>
                 Please select all aspects of this permit that restrict automatic
                 approval. THese selections will automatically populate a
                 template.
             </p>
-        </div>
-    </section>
+        </section>
+    </div>
 </template>
 
 <script>
