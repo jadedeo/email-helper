@@ -30,46 +30,31 @@
             </div>
 
             <div v-else>
-                <h2>You have {{ templates.length }} templates</h2>
-                <!-- Unsorted templates -->
-                <!-- <div class="mb-4">
-                    <h3 class="font-bold">Unsorted</h3>
-                    <ul
-                        id="section-unsorted"
-                        class="template-list"
-                        data-section=""
-                    >
-                        <li
-                            v-for="t in templates.filter((t) => !t.section)"
-                            :key="t.id"
-                            :data-id="t.id"
-                            class="template-item"
-                        >
-                            {{ t.title }}
-                        </li>
-                    </ul>
-                </div> -->
+                <h2>{{ templates.length }} templates</h2>
+                <h2>{{ sections.length }} sections</h2>
+                <li v-for="section in sections">
+                    {{ section }}
+                </li>
 
-                <!-- Sections -->
-                <!-- <div v-for="section in sections" :key="section" class="mb-4">
-                    <h3 class="font-bold">{{ section }}</h3>
-                    <ul
-                        :id="`section-${section}`"
-                        class="template-list"
-                        :data-section="section"
+                <div
+                    v-for="sectionName in [...sections, 'Uncategorized']"
+                    :key="sectionName"
+                    class="p-4 border rounded mb-4"
+                >
+                    <h3 class="font-bold text-lg mb-2">{{ sectionName }}</h3>
+                    <draggable
+                        :list="sectionTemplates[sectionName] || []"
+                        group="templates"
+                        itemKey="id"
+                        @change="(e) => onDragChange(e, sectionName)"
                     >
-                        <li
-                            v-for="t in templates.filter(
-                                (t) => t.section === section
-                            )"
-                            :key="t.id"
-                            :data-id="t.id"
-                            class="template-item"
-                        >
-                            {{ t.title }}
-                        </li>
-                    </ul>
-                </div> -->
+                        <template #item="{ element }">
+                            <div class="p-2 mb-1 bg-white border rounded">
+                                {{ element.title }}
+                            </div>
+                        </template>
+                    </draggable>
+                </div>
             </div>
 
             <div class="flex gap-3">
@@ -85,18 +70,37 @@
             </div>
         </div>
         <hr class="border-solid border-t-1 border-gray-100" />
-        <Button
-            label="Add section"
-            variant="outlined"
-            @button-click="addSection"
-        />
+        <div>
+            <div v-if="displaySectionField">
+                <input type="text" v-model="newSection" />
+                <p>{{ newSection }}</p>
+            </div>
+            <div v-if="displaySectionField" class="flex gap-3">
+                <Button
+                    label="Cancel"
+                    variant="outlined"
+                    @button-click="cancelAddSection"
+                />
+                <Button
+                    label="Create section"
+                    variant="outlined"
+                    :disabled="disableCreateSection"
+                    @button-click="createSection"
+                />
+            </div>
+            <Button
+                v-if="!displaySectionField"
+                label="Add section"
+                variant="outlined"
+                @button-click="addSection"
+            />
+        </div>
     </section>
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
-import Sortable from "sortablejs";
-import Sortable from "sortablejs/modular/sortable.complete.esm.js";
+import { ref, onMounted, computed } from "vue";
+import draggable from "vuedraggable";
 import Button from "../components/Button.vue";
 import InfoBox from "./InfoBox.vue";
 
@@ -104,86 +108,71 @@ export default {
     components: {
         Button,
         InfoBox,
+        draggable,
     },
 
     setup() {
         const templates = ref([]);
         const sections = ref([]);
+        const newSection = ref("");
+        const displaySectionField = ref(false);
 
         onMounted(() => {
             chrome.storage.local.get(["templates", "sections"], (result) => {
-                templates.value = result.templates || [];
-                sections.value = result.sections || [];
-
-                // After setting `sections`, mount Sortable
-                const sectionNames = ["", ...sections.value];
-                sectionNames.forEach((sectionName) => {
-                    Sortable.create(
-                        document.getElementById(`section-${sectionName}`),
-                        {
-                            group: "templates",
-                            animation: 150,
-                            onEnd: (evt) => {
-                                const movedId = evt.item.dataset.id;
-                                const newSection =
-                                    evt.to.dataset.section || null;
-                                const templateToMove = templates.value.find(
-                                    (t) => t.id === movedId
-                                );
-
-                                if (templateToMove) {
-                                    templateToMove.section = newSection;
-                                    chrome.storage.local.set({
-                                        templates: templates.value,
-                                    });
-                                }
-                            },
-                        }
+                if (Array.isArray(result.templates)) {
+                    templates.value = result.templates;
+                }
+                if (Array.isArray(result.sections)) {
+                    sections.value = result.sections;
+                } else if (result.sections !== undefined) {
+                    console.warn(
+                        "⚠️ Invalid sections format:",
+                        result.sections
                     );
-                });
+                }
             });
         });
+        const onDragChange = (event, newSectionName) => {
+            const { added, moved } = event;
+            if (added || moved) {
+                // Update section on added
+                if (added) {
+                    const movedTemplate = added.element;
+                    const match = templates.value.find(
+                        (t) => t.id === movedTemplate.id
+                    );
+                    if (match) {
+                        match.section =
+                            newSectionName === "Uncategorized"
+                                ? null
+                                : newSectionName;
+                    }
+                }
 
-        // onMounted(() => {
-        //     chrome.storage.local.get(["templates", "sections"], (result) => {
-        //         templates.value = result.templates || [];
-        //         sections.value = result.sections || [];
-        //     });
-        // });
+                // Flatten updated sectionTemplates into one array
+                const updated = [];
+                for (const [section, templateList] of Object.entries(
+                    sectionTemplates.value
+                )) {
+                    for (const template of templateList) {
+                        updated.push({ ...template });
+                    }
+                }
 
-        // onMounted(() => {
-        //     const sectionsList = ["", ...sections.value]; // "" = unsorted
-        //     sectionsList.forEach((sectionName) => {
-        //         Sortable.create(
-        //             document.getElementById(`section-${sectionName}`),
-        //             {
-        //                 group: "templates",
-        //                 animation: 150,
-        //                 onEnd: (evt) => {
-        //                     const movedId = evt.item.dataset.id;
-        //                     const newSection = evt.to.dataset.section || null;
+                templates.value = updated;
+                chrome.storage.local.set({ templates: updated });
+            }
+        };
 
-        //                     const templateToMove = templates.value.find(
-        //                         (t) => t.id === movedId
-        //                     );
-        //                     if (templateToMove) {
-        //                         templateToMove.section = newSection;
-        //                         chrome.storage.local.set({
-        //                             templates: templates.value,
-        //                         });
-        //                     }
-        //                 },
-        //             }
-        //         );
-        //     });
-        // });
-
-        // onMounted(() => {
-        //     chrome.storage.local.get(["templates"], (result) => {
-        //         templates.value = result.templates;
-        //         console.log("Templates:", templates.value);
-        //     });
-        // });
+        const sectionTemplates = computed(() => {
+            const grouped = {};
+            for (const template of templates.value) {
+                const key = template.section || "Uncategorized";
+                if (!grouped[key]) grouped[key] = [];
+                grouped[key].push(template);
+            }
+            return grouped;
+        });
 
         const openOrFocusCreateTemplateWindow = () => {
             chrome.runtime.sendMessage(
@@ -203,78 +192,62 @@ export default {
         };
 
         const addSection = () => {
-            const newSection = prompt("Enter section name:");
-            if (!newSection) return;
+            displaySectionField.value = !displaySectionField.value;
+        };
 
-            const cleanName = newSection.trim();
+        const createSection = () => {
+            const cleanName = newSection.value.trim();
+
+            if (!Array.isArray(sections.value)) {
+                console.error(
+                    "sections.value is not an array:",
+                    sections.value
+                );
+                alert(
+                    "There was an error saving the section. Please try again."
+                );
+                return;
+            }
+
             if (sections.value.includes(cleanName)) {
                 alert("That section already exists.");
                 return;
             }
 
-            // sections.value.push(cleanName);
-            // chrome.storage.local.set({ sections: sections.value });
-
             sections.value.push(cleanName);
-            chrome.storage.local.set({ sections: sections.value }, () => {
-                initSortables(); // add sortable to the new section
-            });
+            chrome.storage.local.set({ sections: [...sections.value] });
+
+            newSection.value = "";
+            displaySectionField.value = false;
         };
 
-        const initSortables = () => {
-            const sectionNames = ["", ...sections.value];
-            sectionNames.forEach((sectionName) => {
-                const el = document.getElementById(`section-${sectionName}`);
-                if (el && !el._sortableInitialized) {
-                    Sortable.create(el, {
-                        group: "templates",
-                        animation: 150,
-                        onEnd: (evt) => {
-                            const movedId = evt.item.dataset.id;
-                            const newSection = evt.to.dataset.section || null;
-                            const templateToMove = templates.value.find(
-                                (t) => t.id === movedId
-                            );
-
-                            if (templateToMove) {
-                                templateToMove.section = newSection;
-                                chrome.storage.local.set({
-                                    templates: templates.value,
-                                });
-                            }
-                        },
-                    });
-                    el._sortableInitialized = true;
-                }
-            });
+        const cancelAddSection = () => {
+            console.log("cancelAddSection");
+            newSection.value = "";
+            displaySectionField.value = false;
         };
+        const disableCreateSection = computed(function () {
+            console.log("disableCreateSection");
+            return displaySectionField && newSection.value.trim() === "";
+        });
 
         return {
             templates,
+            sections,
+            newSection,
+            addSection,
+            createSection,
+            disableCreateSection,
+            displaySectionField,
+            cancelAddSection,
             openOrFocusCreateTemplateWindow,
             uploadTemplates,
             addSalutation,
-            addSection,
-            initSortables,
+            sectionTemplates,
+            onDragChange,
         };
     },
 };
 </script>
 
-<style scoped>
-.template-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 0;
-    list-style: none;
-}
-
-.template-item {
-    padding: 0.5rem 1rem;
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    cursor: grab;
-}
-</style>
+<style scoped></style>
