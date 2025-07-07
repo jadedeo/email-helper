@@ -24,10 +24,6 @@
                 "
                 ><TextBoxMultipleIcon :size="18"
             /></Button>
-
-            <!-- <button @click="openOrFocusCreateTemplateWindow">
-            Manage Templates
-        </button> -->
         </div>
     </section>
 

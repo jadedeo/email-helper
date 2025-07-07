@@ -6,7 +6,7 @@
             <InfoBox
                 heading="Salutations are automatically applied"
                 body="Greetings and sign-off salutations are applied to all email
-                    reposnses, no matter which template is used."
+                    responses, regardless of which template is used."
             />
 
             <div class="flex gap-3">
@@ -27,7 +27,7 @@
         <!-- TODO: conditionally render sections -->
         <section class="px-6">
             <!-- NO TEMPLATES YET -->
-            <div class="flex flex-col gap-3">
+            <div class="flex flex-col gap-5">
                 <div
                     class="w-fit border-solid border-1 border-lime-100 mx-auto rounded-full p-5"
                 >
@@ -42,9 +42,7 @@
                     </div>
                 </div>
                 <div class="text-center">
-                    <h3 class="font-bold text-lg">
-                        You don't have any templates yet!
-                    </h3>
+                    <h3>You don't have any templates yet!</h3>
                     <p>Upload template files or create a new document.</p>
                 </div>
                 <div class="flex gap-3">
@@ -75,13 +73,19 @@
                 </small> -->
 
                 <div
-                    v-for="sectionName in [...sections, 'Other']"
+                    v-for="sectionName in [...sections, 'Miscellaneous']"
                     :key="sectionName"
                 >
                     <div class="my-5 px-6">
-                        <h3 class="font-bold text-lg">
+                        <h3>
                             {{ sectionName }}
                         </h3>
+                        <p
+                            v-if="sectionName === 'Miscellaneous'"
+                            class="mb-1 text-gray-500"
+                        >
+                            Uncategorized templates are placed here by default.
+                        </p>
                         <draggable
                             :list="sectionTemplates[sectionName] || []"
                             group="templates"
@@ -100,7 +104,6 @@
                                         <PencilOutlineIcon :size="20" />
                                     </div>
 
-                                    <!-- hr between templates, but not after last -->
                                     <hr
                                         v-if="
                                             templateIndex <
@@ -123,7 +126,7 @@
                 </div>
             </div>
         </section>
-        <!-- <hr /> -->
+
         <section class="px-6">
             <div v-if="displaySectionField">
                 <input type="text" v-model="newSection" />
@@ -197,10 +200,10 @@ export default {
                 }
             });
         });
+
         const onDragChange = (event, newSectionName) => {
             const { added, moved } = event;
             if (added || moved) {
-                // Update section on added
                 if (added) {
                     const movedTemplate = added.element;
                     const match = templates.value.find(
@@ -214,7 +217,6 @@ export default {
                     }
                 }
 
-                // Flatten updated sectionTemplates into one array
                 const updated = [];
                 for (const [section, templateList] of Object.entries(
                     sectionTemplates.value
@@ -253,7 +255,7 @@ export default {
         };
 
         const addSalutation = () => {
-            console.log("UPLOAD TEMPLATES");
+            console.log("ADD SALUTATION");
         };
 
         const addSection = () => {
@@ -263,6 +265,7 @@ export default {
         const createSection = () => {
             const cleanName = newSection.value.trim();
 
+            // TODO: replace alerts with error messaging at field
             if (!Array.isArray(sections.value)) {
                 console.error(
                     "sections.value is not an array:",
@@ -287,12 +290,10 @@ export default {
         };
 
         const cancelAddSection = () => {
-            console.log("cancelAddSection");
             newSection.value = "";
             displaySectionField.value = false;
         };
         const disableCreateSection = computed(function () {
-            console.log("disableCreateSection");
             return displaySectionField && newSection.value.trim() === "";
         });
 
