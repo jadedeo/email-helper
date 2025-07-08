@@ -1,3 +1,5 @@
+// TODO: clean up
+
 // public/background.js
 // chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 //     if (msg?.type === "open-or-focus-create-template") {

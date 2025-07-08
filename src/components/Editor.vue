@@ -38,6 +38,7 @@
                 @click="editor?.chain().focus().toggleUnderline().run()"
                 :class="{ active: editor?.isActive('underline') }"
                 variant="editormenuitem"
+                disabled="true"
             >
                 <LinkVariantIcon fillColor="#000000" :size="18" />
             </Button>

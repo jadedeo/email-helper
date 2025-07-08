@@ -7,7 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
     define: {
         global: {},
-        "process.env": {}, // sometimes needed for Vue + Vite + extensions
+        "process.env": {},
     },
     plugins: [vue(), tailwindcss()],
     build: {
