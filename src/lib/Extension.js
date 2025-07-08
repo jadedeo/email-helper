@@ -6,22 +6,32 @@ import { VueNodeViewRenderer } from "@tiptap/vue-3";
 import Component from "../components/Component.vue";
 
 export default Node.create({
-    name: "vueComponent",
+    name: "customInput",
 
-    group: "block",
+    group: "inline",
+    inline: true,
+    atom: true,
 
     content: "inline*",
+
+    addAttributes() {
+        return {
+            label: {
+                default: "",
+            },
+        };
+    },
 
     parseHTML() {
         return [
             {
-                tag: "vue-component",
+                tag: "custom-input",
             },
         ];
     },
 
     renderHTML({ HTMLAttributes }) {
-        return ["vue-component", mergeAttributes(HTMLAttributes), 0];
+        return ["custom-input", mergeAttributes(HTMLAttributes), 0];
     },
 
     addNodeView() {

@@ -2,23 +2,35 @@
 
 <template>
     <div
-        class="editor-wrapper flex flex-col h-full bg-white rounded-md drop-shadow-sm"
+        class="editor-wrapper flex flex-col h-full bg-white rounded-md drop-shadow-sm overflow-clip"
     >
         <editor-content :editor="editor" class="flex-1 overflow-auto" />
-        <div class="tiptap-menu h-fit flex gap-1">
+        <div
+            class="tiptap-menu h-fit flex gap-1 items-center p-1 border-t-1 border-solid border-gray-200"
+        >
+            <!-- TODO: add list formatting, linking & font colors -->
+            <!-- https://tiptap.dev/docs/ui-components/components/link-popover -->
             <Button
                 @click="editor?.chain().focus().toggleBold().run()"
                 :class="{ active: editor?.isActive('bold') }"
                 variant="editormenuitem"
             >
-                B
+                <BoldFormatIcon fillColor="#000000" :size="18" />
             </Button>
             <Button
                 @click="editor?.chain().focus().toggleItalic().run()"
                 :class="{ active: editor?.isActive('italic') }"
                 variant="editormenuitem"
             >
-                I
+                <ItalicFormatIcon fillColor="#000000" :size="18" />
+            </Button>
+
+            <Button
+                @click="editor?.chain().focus().toggleUnderline().run()"
+                :class="{ active: editor?.isActive('underline') }"
+                variant="editormenuitem"
+            >
+                <UnderlineFormatIcon fillColor="#000000" :size="18" />
             </Button>
 
             <Button
@@ -54,12 +66,13 @@
                     editor
                         .chain()
                         .focus()
-                        .insertContent({ type: 'vueComponent' }) // ← match your node name
+                        .insertContent({ type: 'customInput' }) // ← match your node name
                         .run()
                 "
                 variant="editormenuitem"
-            >
-                Vue Component
+                class="!border-solid border-1 border-lime-500 !py-1 !h-fit"
+                ><TextIcon fillColor="#000000" :size="16" />
+                Custom Input Field
             </Button>
 
             <!-- <Button
@@ -102,11 +115,17 @@ import { useEditor, EditorContent } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import BulletList from "@tiptap/extension-bullet-list";
+import Underline from "@tiptap/extension-underline";
 import ListItem from "@tiptap/extension-list-item";
 import { watch, onBeforeUnmount } from "vue";
 import Button from "../components/Button.vue";
-import VueComponent from "../lib/Extension";
+import CustomInput from "../lib/Extension";
 import { createApp } from "vue";
+
+import BoldFormatIcon from "vue-material-design-icons/FormatBold.vue";
+import ItalicFormatIcon from "vue-material-design-icons/FormatItalic.vue";
+import UnderlineFormatIcon from "vue-material-design-icons/FormatUnderline.vue";
+import TextIcon from "vue-material-design-icons/Text.vue";
 
 const tiptapNodeViewApp = createApp({});
 
@@ -115,6 +134,10 @@ export default {
         EditorContent,
         // BulletList,
         // ListItem,
+        BoldFormatIcon,
+        ItalicFormatIcon,
+        UnderlineFormatIcon,
+        TextIcon,
         Button,
     },
     emits: ["update:modelValue"],
@@ -132,6 +155,7 @@ export default {
                     bulletList: false,
                     listItem: false,
                 }),
+                Underline,
                 BulletList.configure({
                     itemTypeName: "listItem",
                     keepMarks: true,
@@ -149,7 +173,7 @@ export default {
                     placeholder:
                         "Start typing or paste a pre-written template.",
                 }),
-                VueComponent,
+                CustomInput,
             ],
             editorProps: {
                 attributes: {

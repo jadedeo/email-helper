@@ -11,21 +11,14 @@
             class="text-lg font-bold !border-0 !p-0 placeholder-gray-600"
         />
 
-        <!-- <DeleteIcon
-                v-if="isEditingTemplate"
-                :size="20"
-                @click="handleDeleteTemplate"
-            /> -->
-        <!-- </div> -->
-
         <editor v-model="templateBody" />
 
         <!-- FOR TESTING PURPOSES -->
-        <!-- <div class="output-group bg-white">
+        <div class="output-group bg-white">
             <label>Content:</label>
             <code>{{ templateTitle }}</code>
             <code>{{ templateBody }}</code>
-        </div> -->
+        </div>
         <div class="flex justify-between items-center">
             <Button
                 @button-click="handleDeleteTemplate"
