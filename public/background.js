@@ -1,19 +1,20 @@
+// public/background.js
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (msg === "open-or-focus-create-template") {
+    if (msg?.type === "open-or-focus-create-template") {
         chrome.storage.session.get("createTemplateWindowId", (data) => {
             const savedId = data.createTemplateWindowId;
 
             if (typeof savedId === "number") {
                 chrome.windows.get(savedId, (win) => {
                     if (chrome.runtime.lastError || !win) {
-                        createNewWindow(sendResponse); // window doesn't exist anymore
+                        createNewWindow(sendResponse, msg.payload); // window doesn't exist anymore
                     } else {
                         chrome.windows.update(savedId, { focused: true });
                         sendResponse({ status: "focused" });
                     }
                 });
             } else {
-                createNewWindow(sendResponse); // no saved ID
+                createNewWindow(sendResponse, msg.payload); // no saved ID
             }
         });
 
@@ -21,7 +22,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
 });
 
-function createNewWindow(sendResponse) {
+function createNewWindow(sendResponse, templateToEdit = null) {
     chrome.system.display.getInfo((displays) => {
         const primaryDisplay = displays.find((d) => d.isPrimary);
         const availWidth = primaryDisplay.workArea.width;
@@ -59,6 +60,12 @@ function createNewWindow(sendResponse) {
                             );
                         }
                     });
+
+                    if (templateToEdit) {
+                        chrome.storage.session.set({
+                            templateToEdit,
+                        });
+                    }
                 }
                 sendResponse({ status: "created" });
             }

@@ -1,7 +1,7 @@
 <!-- App.vue -->
 
 <template>
-    <section class="px-6">
+    <section class="px-6 mt-6">
         <div
             class="bg-gray-100 flex w-full rounded-md p-[1px] border-1 border-gray-100 border-solid"
         >

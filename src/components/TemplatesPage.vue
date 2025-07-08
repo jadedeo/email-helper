@@ -1,6 +1,6 @@
 <!-- src/components/TemplatePage.vue -->
 <template>
-    <div class="flex flex-col gap-5">
+    <div class="flex flex-col gap-5 mb-6">
         <section class="flex flex-col gap-3 px-6">
             <h2>Salutation</h2>
             <InfoBox
@@ -53,10 +53,11 @@
                         ><CloudUploadIcon :size="20"
                     /></Button>
                     <Button
-                        @button-click="openOrFocusCreateTemplateWindow"
+                        @button-click="() => openOrFocusCreateTemplateWindow()"
                         label="Create template"
-                        ><PlusIcon :size="20"
-                    /></Button>
+                    >
+                        <PlusIcon :size="20" />
+                    </Button>
                 </div>
             </div>
         </section>
@@ -101,7 +102,15 @@
                                             <DragVerticalIcon :size="20" />
                                             {{ element.title }}
                                         </div>
-                                        <PencilOutlineIcon :size="20" />
+                                        <PencilOutlineIcon
+                                            :size="20"
+                                            @click="
+                                                () =>
+                                                    openOrFocusCreateTemplateWindow(
+                                                        element
+                                                    )
+                                            "
+                                        />
                                     </div>
 
                                     <hr
@@ -117,7 +126,9 @@
                             </template>
                         </draggable>
                         <Button
-                            @button-click="openOrFocusCreateTemplateWindow"
+                            @button-click="
+                                () => openOrFocusCreateTemplateWindow()
+                            "
                             label="Add template"
                             variant="link"
                         ></Button>
@@ -127,11 +138,16 @@
             </div>
         </section>
 
-        <section class="px-6">
-            <div v-if="displaySectionField">
-                <input type="text" v-model="newSection" />
-                <p>{{ newSection }}</p>
-            </div>
+        <section class="px-6 flex flex-col gap-5">
+            <!-- <div v-if="displaySectionField"> -->
+            <input
+                v-if="displaySectionField"
+                type="text"
+                v-model="newSection"
+                placeholder="New section name"
+            />
+            <!-- <p>{{ newSection }}</p> -->
+            <!-- </div> -->
             <div v-if="displaySectionField" class="flex gap-3">
                 <Button
                     label="Cancel"
@@ -199,6 +215,8 @@ export default {
                     );
                 }
             });
+            console.log("templates", templates);
+            console.log("sections", sections);
         });
 
         const onDragChange = (event, newSectionName) => {
@@ -210,10 +228,7 @@ export default {
                         (t) => t.id === movedTemplate.id
                     );
                     if (match) {
-                        match.section =
-                            newSectionName === "Uncategorized"
-                                ? null
-                                : newSectionName;
+                        match.section = newSectionName;
                     }
                 }
 
@@ -234,21 +249,42 @@ export default {
         const sectionTemplates = computed(() => {
             const grouped = {};
             for (const template of templates.value) {
-                const key = template.section || "Uncategorized";
+                // const key = template.section || "Miscellaneous";
+                const key = template.section;
+
                 if (!grouped[key]) grouped[key] = [];
                 grouped[key].push(template);
             }
             return grouped;
         });
 
-        const openOrFocusCreateTemplateWindow = () => {
+        const openOrFocusCreateTemplateWindow = (template = null) => {
             chrome.runtime.sendMessage(
-                "open-or-focus-create-template",
+                {
+                    type: "open-or-focus-create-template",
+                    payload: template
+                        ? {
+                              id: template.id,
+                              title: template.title,
+                              body: template.body,
+                              section: template.section,
+                          }
+                        : null,
+                },
                 (response) => {
                     console.log("Response:", response);
                 }
             );
         };
+
+        // const openOrFocusCreateTemplateWindow = () => {
+        //     chrome.runtime.sendMessage(
+        //         "open-or-focus-create-template",
+        //         (response) => {
+        //             console.log("Response:", response);
+        //         }
+        //     );
+        // };
 
         const uploadTemplates = () => {
             console.log("UPLOAD TEMPLATES");

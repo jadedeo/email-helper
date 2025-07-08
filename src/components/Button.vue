@@ -15,7 +15,7 @@ export default {
     props: {
         label: {
             type: String,
-            required: true,
+            required: false,
         },
         variant: {
             type: String,
@@ -43,6 +43,7 @@ export default {
                     "w-full px-2 py-2 rounded-md bg-lime-200 text-lime-800",
                 inactivetab:
                     "w-full px-2 py-2 rounded-md bg-gray-100 text-gray-500",
+                editormenuitem: " text-black hover:bg-gray-100 p-3",
             };
 
             return `${base} ${cursor} ${

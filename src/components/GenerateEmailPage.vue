@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col gap-5">
+    <div class="flex flex-col gap-5 mb-6">
         <section class="flex flex-col gap-3 px-6">
             <h2>What's wrong?</h2>
             <p>
