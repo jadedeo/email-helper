@@ -161,6 +161,8 @@
                     @button-click="createSection"
                 />
             </div>
+
+            <!-- TODO: implement adding to specific section -->
             <Button
                 v-if="!displaySectionField"
                 label="Add section"
@@ -276,15 +278,6 @@ export default {
                 }
             );
         };
-
-        // const openOrFocusCreateTemplateWindow = () => {
-        //     chrome.runtime.sendMessage(
-        //         "open-or-focus-create-template",
-        //         (response) => {
-        //             console.log("Response:", response);
-        //         }
-        //     );
-        // };
 
         const uploadTemplates = () => {
             console.log("UPLOAD TEMPLATES");

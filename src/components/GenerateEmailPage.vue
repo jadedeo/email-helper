@@ -1,3 +1,5 @@
+<!-- src/components/GenerateEmailPage.vue -->
+
 <template>
     <div class="flex flex-col gap-5 mb-6">
         <section class="flex flex-col gap-3 px-6">
@@ -42,7 +44,7 @@
             <Button
                 label="Next"
                 variant="outlined"
-                @button-click="handleNext"
+                @button-click="() => openOrFocusGenerateEmailWindow()"
             />
         </section>
     </div>
@@ -96,11 +98,20 @@ export default {
             )
         );
 
-        const handleNext = () => {
+        const openOrFocusGenerateEmailWindow = () => {
             const selected = templates.value.filter((t) =>
                 selectedTemplates.value.includes(t.id)
             );
-            console.log("Selected templates:", selected);
+
+            chrome.runtime.sendMessage(
+                {
+                    type: "open-or-focus-generate-email",
+                    payload: selected,
+                },
+                (response) => {
+                    console.log("Response:", response);
+                }
+            );
         };
 
         return {
@@ -109,7 +120,7 @@ export default {
             selectedTemplates,
             populatedSections,
             sectionTemplates,
-            handleNext,
+            openOrFocusGenerateEmailWindow,
         };
     },
 };

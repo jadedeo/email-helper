@@ -9,7 +9,7 @@
     "host_permissions": ["<all_urls>"],
     "web_accessible_resources": [
         {
-            "resources": ["create-template.html"],
+            "resources": ["create-template.html", "generate-email.html"],
             "matches": ["<all_urls>"]
         }
     ],

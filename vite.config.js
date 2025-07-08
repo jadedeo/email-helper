@@ -16,6 +16,7 @@ export default defineConfig({
             input: {
                 main: path.resolve(__dirname, "index.html"),
                 createTemplate: path.resolve(__dirname, "create-template.html"),
+                generateEmail: path.resolve(__dirname, "generate-email.html"),
             },
             output: {
                 globals: {

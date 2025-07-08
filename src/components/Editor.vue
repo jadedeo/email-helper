@@ -33,6 +33,15 @@
                 <UnderlineFormatIcon fillColor="#000000" :size="18" />
             </Button>
 
+            <!-- REPLACE WITH LINK ACTION -->
+            <Button
+                @click="editor?.chain().focus().toggleUnderline().run()"
+                :class="{ active: editor?.isActive('underline') }"
+                variant="editormenuitem"
+            >
+                <LinkVariantIcon fillColor="#000000" :size="18" />
+            </Button>
+
             <Button
                 @click="
                     editor?.chain().focus().toggleHeading({ level: 1 }).run()
@@ -126,6 +135,7 @@ import BoldFormatIcon from "vue-material-design-icons/FormatBold.vue";
 import ItalicFormatIcon from "vue-material-design-icons/FormatItalic.vue";
 import UnderlineFormatIcon from "vue-material-design-icons/FormatUnderline.vue";
 import TextIcon from "vue-material-design-icons/Text.vue";
+import LinkVariantIcon from "vue-material-design-icons/LinkVariant.vue";
 
 const tiptapNodeViewApp = createApp({});
 
@@ -138,6 +148,7 @@ export default {
         ItalicFormatIcon,
         UnderlineFormatIcon,
         TextIcon,
+        LinkVariantIcon,
         Button,
     },
     emits: ["update:modelValue"],

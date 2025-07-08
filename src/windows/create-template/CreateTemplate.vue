@@ -14,8 +14,8 @@
         <editor v-model="templateBody" />
 
         <!-- FOR TESTING PURPOSES -->
-        <div class="output-group bg-white">
-            <label>Content:</label>
+        <div class="output-group text-gray-500">
+            <!-- <label>Content:</label> -->
             <code>{{ templateTitle }}</code>
             <code>{{ templateBody }}</code>
         </div>
@@ -67,8 +67,6 @@ export default {
         DeleteIcon,
     },
     setup() {
-        // console.log("Force bundling:", CustomInputComponent);
-
         const templateTitle = ref("");
         const templateBody = ref("");
         const isEditingTemplate = ref(false);
@@ -162,7 +160,7 @@ export default {
                 id: crypto.randomUUID(),
                 title: templateTitle.value.trim(),
                 body: templateBody.value.trim(),
-                section: "Miscellaneous", // <- Unsorted by default
+                section: "Miscellaneous",
             };
 
             chrome.storage.local.get(["templates"], (result) => {
