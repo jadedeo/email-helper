@@ -34,7 +34,7 @@ export default {
         const computedClass = computed(() => {
             const base = "font-bold";
             const cursor = props.disabled
-                ? "opacity-50 cursor-not-allowed"
+                ? "opacity-25 cursor-not-allowed"
                 : "cursor-pointer opacity-100";
 
             const variants = {

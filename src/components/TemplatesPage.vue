@@ -15,15 +15,9 @@
                 "
             >
                 <div>
-                    <Button
-                        v-if="!greetingTemplate"
-                        @button-click="() => addSalutation('greeting')"
-                        variant="link"
-                        label="Add greeting"
-                    />
                     <!-- TODO: make this into a component substitute in draggable area too -->
                     <div
-                        v-else
+                        v-if="greetingTemplate"
                         class="flex justify-between items-center cursor-grab py-3"
                     >
                         <div class="flex gap-1 items-center font-semibold">
@@ -39,17 +33,9 @@
                             "
                         />
                     </div>
-                </div>
-                <hr v-if="signOffTemplate" />
-                <div>
-                    <Button
-                        v-if="!signOffTemplate"
-                        @button-click="() => addSalutation('sign-off')"
-                        variant="link"
-                        label="Add sign-off"
-                    />
+                    <hr v-if="greetingTemplate && signOffTemplate" />
                     <div
-                        v-else
+                        v-if="signOffTemplate"
                         class="flex justify-between items-center cursor-grab py-3"
                     >
                         <div class="flex gap-1 items-center font-semibold">
@@ -65,6 +51,21 @@
                             "
                         />
                     </div>
+                </div>
+
+                <div>
+                    <Button
+                        v-if="!greetingTemplate"
+                        @button-click="() => addSalutation('greeting')"
+                        variant="link"
+                        label="Add greeting"
+                    />
+                    <Button
+                        v-if="!signOffTemplate"
+                        @button-click="() => addSalutation('sign-off')"
+                        variant="link"
+                        label="Add sign-off"
+                    />
                 </div>
             </div>
         </section>
@@ -104,6 +105,7 @@
                         @button-click="uploadTemplates"
                         variant="outlined"
                         label="Upload templates"
+                        disabled="true"
                         ><CloudUploadIcon :size="20"
                     /></Button>
                     <Button
@@ -215,7 +217,7 @@
             </div>
 
             <!-- TODO: implement adding to specific section -->
-            <hr />
+            <!-- <hr /> -->
             <Button
                 v-if="!displaySectionField"
                 label="Add section"

@@ -14,11 +14,10 @@
         <editor v-model="templateBody" />
 
         <!-- FOR TESTING PURPOSES -->
-        <div class="output-group text-gray-500">
-            <!-- <label>Content:</label> -->
+        <!-- <div class="output-group text-gray-500">
             <code>{{ templateTitle }}</code>
             <code>{{ templateBody }}</code>
-        </div>
+        </div> -->
         <div class="flex justify-between items-center">
             <Button
                 @button-click="handleDeleteTemplate"

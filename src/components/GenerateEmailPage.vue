@@ -7,13 +7,30 @@
             v-if="
                 templates.filter(
                     (template) => template.section !== 'Salutations'
-                ).length == 0
+                ).length == 0 &&
+                greetingTemplate &&
+                signOffTemplate
             "
             class="flex flex-col gap-2 px-6"
         >
             <h2>You don't have any templates yet!</h2>
             <p>
                 Navigate to the templates tab to fill out your first template.
+            </p>
+        </section>
+        <section
+            v-else-if="
+                templates.filter(
+                    (template) => template.section !== 'Salutations'
+                ).length > 0 &&
+                (!greetingTemplate || !signOffTemplate)
+            "
+            class="flex flex-col gap-2 px-6"
+        >
+            <h2>You haven't finished your salutations!</h2>
+            <p>
+                Navigate to the templates tab to configure your default greeting
+                & sign-off.
             </p>
         </section>
         <section v-else class="flex flex-col gap-2 px-6">
@@ -27,11 +44,20 @@
             v-if="
                 templates.filter(
                     (template) => template.section !== 'Salutations'
-                ).length > 0
+                ).length > 0 &&
+                greetingTemplate &&
+                signOffTemplate
             "
         />
 
         <section
+            v-if="
+                templates.filter(
+                    (template) => template.section !== 'Salutations'
+                ).length > 0 &&
+                greetingTemplate &&
+                signOffTemplate
+            "
             class="px-6"
             v-for="(section, index) in populatedSections"
             :key="section"
@@ -63,7 +89,9 @@
                     index < populatedSections.length - 1 &&
                     templates.filter(
                         (template) => template.section !== 'Salutations'
-                    ).length > 0
+                    ).length > 0 &&
+                    greetingTemplate &&
+                    signOffTemplate
                 "
             />
         </section>
@@ -71,7 +99,9 @@
             v-if="
                 templates.filter(
                     (template) => template.section !== 'Salutations'
-                ).length > 0
+                ).length > 0 &&
+                greetingTemplate &&
+                signOffTemplate
             "
             class="px-6"
         >
