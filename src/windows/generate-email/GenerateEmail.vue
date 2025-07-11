@@ -77,14 +77,19 @@
                 class="!w-fit !px-10"
             />
 
-            <!-- TODO: update copy/run by jyaleen -->
             <Button
-                @button-click="launchInbox"
-                label="Launch Inbox"
+                @button-click="copyFormattedEmail"
+                label="Copy with Formatting"
+                variant="outlined"
+                class="!w-fit !px-10"
+            />
+
+            <Button
+                @button-click="launchPlaintextEmail"
+                label="Create Draft in Mail Client"
                 class="!w-fit !px-10"
                 :disabled="disableLaunchInbox"
             />
-            <small>disableLaunchInbox: {{ disableLaunchInbox }}</small>
         </div>
     </div>
 </template>
@@ -168,9 +173,67 @@ export default {
             window.close();
         };
 
-        const launchInbox = () => {
-            console.log("LAUNCH INBOX");
-            window.close();
+        const launchPlaintextEmail = () => {
+            // Create a temporary DOM element to parse the HTML
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = filledHTML.value;
+
+            // Traverse the nodes and convert block-level elements into line breaks
+            const walk = (node) => {
+                let text = "";
+
+                node.childNodes.forEach((child) => {
+                    if (child.nodeType === Node.TEXT_NODE) {
+                        text += child.textContent;
+                    } else if (child.nodeType === Node.ELEMENT_NODE) {
+                        const tag = child.tagName.toLowerCase();
+
+                        if (tag === "br") {
+                            text += "\n";
+                        } else if (
+                            ["p", "div", "section", "li"].includes(tag)
+                        ) {
+                            text += walk(child) + "\n\n";
+                        } else if (
+                            tag === "span" ||
+                            tag === "strong" ||
+                            tag === "b" ||
+                            tag === "em"
+                        ) {
+                            text += walk(child);
+                        } else {
+                            text += walk(child);
+                        }
+                    }
+                });
+
+                return text;
+            };
+
+            const plainTextWithBreaks = walk(tempDiv)
+                .replace(/\n{3,}/g, "\n\n") // limit multiple line breaks
+                .trim();
+
+            const mailtoLink = `mailto:?subject=${encodeURIComponent(
+                subject.value
+            )}&body=${encodeURIComponent(plainTextWithBreaks)}`;
+            window.location.href = mailtoLink;
+        };
+
+        const copyFormattedEmail = async () => {
+            try {
+                await navigator.clipboard.write([
+                    new ClipboardItem({
+                        "text/html": new Blob([filledHTML.value], {
+                            type: "text/html",
+                        }),
+                    }),
+                ]);
+                alert("Formatted email copied to clipboard!");
+            } catch (err) {
+                console.error("Clipboard copy failed:", err);
+                alert("Could not copy email. Please try again.");
+            }
         };
 
         const disableLaunchInbox = computed(() => {
@@ -188,9 +251,10 @@ export default {
             extractedHTML,
             inputValues,
             closeGenerateEmail,
-            launchInbox,
             disableLaunchInbox,
             filledHTML,
+            launchPlaintextEmail,
+            copyFormattedEmail,
         };
     },
 };
