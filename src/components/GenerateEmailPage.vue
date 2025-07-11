@@ -41,10 +41,12 @@
             <hr v-if="index < populatedSections.length - 1" />
         </section>
         <section class="px-6">
+            <!-- <p>disableNext:{{ disableNext }}</p> -->
             <Button
                 label="Next"
                 variant="outlined"
                 @button-click="() => openOrFocusGenerateEmailWindow()"
+                :disabled="disableNext"
             />
         </section>
     </div>
@@ -98,6 +100,10 @@ export default {
             )
         );
 
+        const disableNext = computed(() => {
+            return selectedTemplates.value.length == 0;
+        });
+
         const openOrFocusGenerateEmailWindow = () => {
             const selected = templates.value.filter((t) =>
                 selectedTemplates.value.includes(t.id)
@@ -118,6 +124,7 @@ export default {
             templates,
             sections,
             selectedTemplates,
+            disableNext,
             populatedSections,
             sectionTemplates,
             openOrFocusGenerateEmailWindow,

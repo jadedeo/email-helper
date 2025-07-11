@@ -8,7 +8,7 @@
             type="text"
             v-model="templateTitle"
             placeholder="Untitled Template"
-            class="text-lg font-bold !border-0 !p-0 placeholder-gray-600"
+            class="text-lg font-bold !border-none !p-0 placeholder-gray-600"
         />
 
         <editor v-model="templateBody" />
@@ -180,7 +180,7 @@ export default {
         });
 
         const closeCreateTemplate = () => {
-            console.log("CLOSE CREATE TEMPLATE WINDOW");
+            // console.log("CLOSE CREATE TEMPLATE WINDOW");
             window.close();
         };
 

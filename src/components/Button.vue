@@ -11,6 +11,8 @@
 </template>
 
 <script>
+import { ref, onMounted, computed } from "vue";
+
 export default {
     props: {
         label: {
@@ -27,10 +29,11 @@ export default {
         },
     },
     emits: ["button-click"],
-    computed: {
-        computedClass() {
+
+    setup(props) {
+        const computedClass = computed(() => {
             const base = " font-bold";
-            const cursor = this.disabled
+            const cursor = props.disabled
                 ? "opacity-50 cursor-not-allowed"
                 : "cursor-pointer opacity-100";
 
@@ -43,14 +46,15 @@ export default {
                     "w-full px-2 py-2 rounded-md bg-lime-200 text-lime-800",
                 inactivetab:
                     "w-full px-2 py-2 rounded-md bg-gray-100 text-gray-500",
-                editormenuitem:
-                    " rounded-full text-black hover:bg-gray-100 p-2",
+                editormenuitem: "rounded-full text-black hover:bg-gray-100 p-2",
             };
 
             return `${base} ${cursor} ${
-                variants[this.variant] || variants.filled
+                variants[props.variant] || variants.filled
             }`;
-        },
+        });
+
+        return { computedClass };
     },
 };
 </script>
