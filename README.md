@@ -21,12 +21,44 @@ In order to use the mailTo feature, users must configure a default mail app for 
 
 To build and run the application, users must first install [npm & NodeJS](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm); they should follow the downloading instructions according to their operating system.
 
+## Cloning Repository
+
+Clone the project repository using its web URL:
+
+```bash
+$ git clone https://github.com/jadedeo/email-helper.git
+```
+
+For more information, visit [GitHub Docs | Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
+
 ## Installing Dependencies
 
-To generate a production version of the extension that can be loaded into the browser, navigate into the app repo via the terminal/command line & run the following command.
+To generate a production version of the extension that can be loaded into the browser, navigate into the app repo via the terminal/command line. For me, this looks like:
+
+Once inside the application folder, run the following command.
 
 ```bash
 $ npm install && npm run build
 ```
 
 Within the app repo, you should now see a 'dist' folder.
+
+## Run Extension in Developer Mode
+
+For demo purposes, the following illustrates the process of running a browser extension in dev mode within Edge. The steps are very similar for doing the same in Chrome.
+
+1. Navigate to the 'Manage Extensions' page
+
+    ![Manage Extensions](/public/manageExtensions.png)
+
+2. Toggle 'Developer Mode' on & select 'Load Unpacked'
+
+    ![Dev Mode & Load Unpacked](/public/loadUnpacked.png)
+
+3. Navigate to the application folder within your file system & select the dist folder you just generated
+
+    ![Select dist](/public/selectDist.png)
+
+4. Find extension in toolbar & click to run (pin, if desired)
+
+    ![Launch Extension](/public/launchExtension.png)
