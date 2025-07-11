@@ -1,7 +1,7 @@
 <!-- src/components/TemplatePage.vue -->
 <template>
     <div class="flex flex-col gap-5 mb-6">
-        <section class="flex flex-col gap-3 px-6">
+        <section class="flex flex-col gap-2 px-6">
             <h2>Salutation</h2>
             <InfoBox
                 heading="Salutations are automatically applied"
@@ -9,23 +9,76 @@
                     responses, regardless of which template is used."
             />
 
-            <div class="flex gap-3">
-                <Button
-                    @button-click="addSalutation"
-                    variant="link"
-                    label="Add a greeting"
-                />
-                <Button
-                    @button-click="addSalutation"
-                    variant="link"
-                    label="Add a sign-off"
-                />
+            <div
+                :class="
+                    !greetingTemplate && !signOffTemplate ? 'flex gap-3' : ''
+                "
+            >
+                <div>
+                    <Button
+                        v-if="!greetingTemplate"
+                        @button-click="() => addSalutation('greeting')"
+                        variant="link"
+                        label="Add greeting"
+                    />
+                    <!-- TODO: make this into a component substitute in draggable area too -->
+                    <div
+                        v-else
+                        class="flex justify-between items-center cursor-grab py-3"
+                    >
+                        <div class="flex gap-1 items-center font-semibold">
+                            Greeting
+                        </div>
+                        <PencilOutlineIcon
+                            :size="20"
+                            @click="
+                                () =>
+                                    openOrFocusCreateTemplateWindow(
+                                        greetingTemplate
+                                    )
+                            "
+                        />
+                    </div>
+                </div>
+                <hr v-if="signOffTemplate" />
+                <div>
+                    <Button
+                        v-if="!signOffTemplate"
+                        @button-click="() => addSalutation('sign-off')"
+                        variant="link"
+                        label="Add sign-off"
+                    />
+                    <div
+                        v-else
+                        class="flex justify-between items-center cursor-grab py-3"
+                    >
+                        <div class="flex gap-1 items-center font-semibold">
+                            Sign-off
+                        </div>
+                        <PencilOutlineIcon
+                            :size="20"
+                            @click="
+                                () =>
+                                    openOrFocusCreateTemplateWindow(
+                                        signOffTemplate
+                                    )
+                            "
+                        />
+                    </div>
+                </div>
             </div>
         </section>
         <hr />
 
         <!-- TODO: conditionally render sections -->
-        <section class="px-6">
+        <section
+            v-if="
+                templates.filter(
+                    (template) => template.section !== 'Salutations'
+                ).length == 0
+            "
+            class="px-6"
+        >
             <!-- NO TEMPLATES YET -->
             <div class="flex flex-col gap-5">
                 <div
@@ -46,6 +99,7 @@
                     <p>Upload template files or create a new document.</p>
                 </div>
                 <div class="flex gap-3">
+                    <!-- TODO: add file upload option -->
                     <Button
                         @button-click="uploadTemplates"
                         variant="outlined"
@@ -62,31 +116,26 @@
             </div>
         </section>
 
-        <!-- TODO: remove hr later -->
-        <hr />
-
-        <section class="">
+        <section v-else>
             <!-- HAS TEMPLATES -->
             <div>
-                <!-- <small>
-                    <span>{{ templates.length }} templates</span>
-                    <span>{{ sections.length }} sections</span>
-                </small> -->
-
                 <div
-                    v-for="sectionName in [...sections, 'Miscellaneous']"
+                    v-for="sectionName in [
+                        ...sections.filter((s) => s !== 'Salutations'),
+                        'Uncategorized Templates',
+                    ]"
                     :key="sectionName"
                 >
-                    <div class="my-5 px-6">
+                    <div class="my-5 px-6 flex flex-col gap-2">
                         <h3>
                             {{ sectionName }}
                         </h3>
-                        <p
-                            v-if="sectionName === 'Miscellaneous'"
-                            class="mb-1 text-gray-500"
-                        >
-                            Uncategorized templates are placed here by default.
-                        </p>
+                        <InfoBox
+                            v-if="sectionName === 'Uncategorized Templates'"
+                            heading="These templates do not have a section"
+                            body="You may want to add them to an existing section or create a new one."
+                        />
+
                         <draggable
                             :list="sectionTemplates[sectionName] || []"
                             group="templates"
@@ -98,8 +147,10 @@
                                     <div
                                         class="flex justify-between items-center cursor-grab py-3"
                                     >
-                                        <div class="flex gap-1 items-center">
-                                            <DragVerticalIcon :size="20" />
+                                        <div
+                                            class="flex gap-1 items-center font-semibold"
+                                        >
+                                            <DragVerticalIcon :size="18" />
                                             {{ element.title }}
                                         </div>
                                         <PencilOutlineIcon
@@ -125,13 +176,15 @@
                                 </div>
                             </template>
                         </draggable>
-                        <Button
-                            @button-click="
-                                () => openOrFocusCreateTemplateWindow()
-                            "
-                            label="Add template"
-                            variant="link"
-                        ></Button>
+                        <div class="w-full">
+                            <Button
+                                @button-click="
+                                    () => openOrFocusCreateTemplateWindow()
+                                "
+                                label="Add template"
+                                variant="link"
+                            ></Button>
+                        </div>
                     </div>
                     <hr />
                 </div>
@@ -139,15 +192,14 @@
         </section>
 
         <section class="px-6 flex flex-col gap-5">
-            <!-- <div v-if="displaySectionField"> -->
             <input
                 v-if="displaySectionField"
                 type="text"
                 v-model="newSection"
                 placeholder="New section name"
+                class="standard"
             />
-            <!-- <p>{{ newSection }}</p> -->
-            <!-- </div> -->
+
             <div v-if="displaySectionField" class="flex gap-3">
                 <Button
                     label="Cancel"
@@ -163,6 +215,7 @@
             </div>
 
             <!-- TODO: implement adding to specific section -->
+            <hr />
             <Button
                 v-if="!displaySectionField"
                 label="Add section"
@@ -208,17 +261,33 @@ export default {
                 if (Array.isArray(result.templates)) {
                     templates.value = result.templates;
                 }
+
                 if (Array.isArray(result.sections)) {
                     sections.value = result.sections;
-                } else if (result.sections !== undefined) {
-                    console.warn(
-                        "⚠️ Invalid sections format:",
-                        result.sections
+                } else {
+                    // If missing or invalid, initialize with empty array
+                    // console.warn(
+                    //     "⚠️ Invalid or missing sections, initializing."
+                    // );
+                    sections.value = [];
+                }
+
+                // Now, guaranteed safe to check .includes
+                if (!sections.value.includes("Salutations")) {
+                    sections.value.push("Salutations");
+
+                    chrome.storage.local.set(
+                        { sections: sections.value },
+                        () => {
+                            chrome.storage.local.get("sections", (res) => {
+                                console.log("✅ Saved sections:", res.sections);
+                            });
+                        }
                     );
+                } else {
+                    console.log("sections", sections.value);
                 }
             });
-            console.log("templates", templates);
-            console.log("sections", sections);
         });
 
         const onDragChange = (event, newSectionName) => {
@@ -248,10 +317,25 @@ export default {
             }
         };
 
+        const greetingTemplate = computed(() =>
+            templates.value.find(
+                (template) =>
+                    template.title === "Greeting" &&
+                    template.section === "Salutations"
+            )
+        );
+
+        const signOffTemplate = computed(() =>
+            templates.value.find(
+                (template) =>
+                    template.title === "Sign-off" &&
+                    template.section === "Salutations"
+            )
+        );
+
         const sectionTemplates = computed(() => {
             const grouped = {};
             for (const template of templates.value) {
-                // const key = template.section || "Miscellaneous";
                 const key = template.section;
 
                 if (!grouped[key]) grouped[key] = [];
@@ -283,8 +367,24 @@ export default {
             console.log("UPLOAD TEMPLATES");
         };
 
-        const addSalutation = () => {
-            console.log("ADD SALUTATION");
+        const addSalutation = (type) => {
+            console.log("add salutation");
+            const title = type === "greeting" ? "Greeting" : "Sign-off";
+
+            chrome.runtime.sendMessage(
+                {
+                    type: "open-or-focus-create-template",
+                    payload: {
+                        id: null,
+                        title,
+                        body: "",
+                        section: "Salutations",
+                    },
+                },
+                (response) => {
+                    console.log("Response:", response);
+                }
+            );
         };
 
         const addSection = () => {
@@ -340,6 +440,9 @@ export default {
             addSalutation,
             sectionTemplates,
             onDragChange,
+
+            greetingTemplate,
+            signOffTemplate,
         };
     },
 };

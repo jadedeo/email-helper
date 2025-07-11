@@ -2,14 +2,34 @@
 
 <template>
     <div class="flex flex-col gap-5 mb-6">
-        <section class="flex flex-col gap-3 px-6">
+        <!-- TODO: turn this condition into computed property; used 4 times here -->
+        <section
+            v-if="
+                templates.filter(
+                    (template) => template.section !== 'Salutations'
+                ).length == 0
+            "
+            class="flex flex-col gap-2 px-6"
+        >
+            <h2>You don't have any templates yet!</h2>
+            <p>
+                Navigate to the templates tab to fill out your first template.
+            </p>
+        </section>
+        <section v-else class="flex flex-col gap-2 px-6">
             <h2>What's wrong?</h2>
             <p>
                 Please select all aspects of this permit that restrict automatic
                 approval. These selections will be used to populate a template.
             </p>
         </section>
-        <hr />
+        <hr
+            v-if="
+                templates.filter(
+                    (template) => template.section !== 'Salutations'
+                ).length > 0
+            "
+        />
 
         <section
             class="px-6"
@@ -38,9 +58,23 @@
                 </li>
             </ul>
 
-            <hr v-if="index < populatedSections.length - 1" />
+            <hr
+                v-if="
+                    index < populatedSections.length - 1 &&
+                    templates.filter(
+                        (template) => template.section !== 'Salutations'
+                    ).length > 0
+                "
+            />
         </section>
-        <section class="px-6">
+        <section
+            v-if="
+                templates.filter(
+                    (template) => template.section !== 'Salutations'
+                ).length > 0
+            "
+            class="px-6"
+        >
             <!-- <p>disableNext:{{ disableNext }}</p> -->
             <Button
                 label="Next"
@@ -73,10 +107,10 @@ export default {
                 if (Array.isArray(result.sections)) {
                     sections.value = result.sections;
                 } else if (result.sections !== undefined) {
-                    console.warn(
-                        "⚠️ Invalid sections format:",
-                        result.sections
-                    );
+                    // console.warn(
+                    //     "⚠️ Invalid sections format:",
+                    //     result.sections
+                    // );
                 }
             });
             // console.log(sections.value);
@@ -86,16 +120,33 @@ export default {
         const sectionTemplates = computed(() => {
             const grouped = {};
             for (const template of templates.value) {
-                const key = template.section?.trim() || "Miscellaneous";
+                const key =
+                    template.section?.trim() || "Uncategorized Templates";
                 if (!grouped[key]) grouped[key] = [];
                 grouped[key].push(template);
             }
-            console.log("HERE", sectionTemplates.value);
+            // console.log("HERE", sectionTemplates.value);
             return grouped;
         });
 
+        const greetingTemplate = computed(() =>
+            templates.value.find(
+                (template) =>
+                    template.title === "Greeting" &&
+                    template.section === "Salutations"
+            )
+        );
+
+        const signOffTemplate = computed(() =>
+            templates.value.find(
+                (template) =>
+                    template.title === "Sign-off" &&
+                    template.section === "Salutations"
+            )
+        );
+
         const populatedSections = computed(() =>
-            [...sections.value, "Miscellaneous"].filter(
+            [...sections.value, "Uncategorized Templates"].filter(
                 (s) => sectionTemplates.value[s]?.length
             )
         );
@@ -108,6 +159,10 @@ export default {
             const selected = templates.value.filter((t) =>
                 selectedTemplates.value.includes(t.id)
             );
+
+            if (greetingTemplate.value)
+                selected.unshift(greetingTemplate.value);
+            if (signOffTemplate.value) selected.push(signOffTemplate.value);
 
             chrome.runtime.sendMessage(
                 {

@@ -10,9 +10,9 @@
                 <!-- SELECTIONS -->
                 <section class="flex flex-col gap-2">
                     <h3>Selections</h3>
-                    <div class="flex gap-1">
+                    <div class="flex gap-1 flex-wrap">
                         <span
-                            class="bg-lime-50 border-1 border-solid border-lime-500 rounded-md px-2 py-1"
+                            class="bg-lime-50 border-1 border-solid border-lime-500 rounded-md px-2 py-1 min-w-fit"
                             v-for="template in templates"
                         >
                             {{ template.title }}
@@ -25,7 +25,9 @@
                 <hr />
 
                 <!-- ADD INPUTS -->
-                <section class="flex flex-col gap-3">
+                <section
+                    class="flex flex-col gap-5 overflow-auto max-h-[40vh] pr-2"
+                >
                     <div>
                         <h3>Add Inputs</h3>
                         <p>Please complete the missing inputs in this email.</p>
@@ -34,14 +36,14 @@
                     <div
                         v-for="(val, label) in inputValues"
                         :key="label"
-                        class="flex flex-col"
+                        class="flex flex-col gap-1"
                     >
                         <label :for="label" class="font-bold">{{
                             label
                         }}</label>
                         <input
                             type="text"
-                            class=""
+                            class="standard"
                             v-model="inputValues[label]"
                             :id="label"
                             :placeholder="`Enter ${label.toLowerCase()}`"
@@ -239,12 +241,10 @@ export default {
                         el.replaceWith(spacer);
                     });
 
-                // STEP 2: Normalize spacing on all <p> tags
                 tempDiv.querySelectorAll("p").forEach((p) => {
                     p.style.margin = "0";
                 });
 
-                // STEP 3: Wrap in root styling container (optional, but nice for consistency)
                 const wrappedHTML = `
             <div style="font-family: Calibri, sans-serif; font-size: 11pt;">
                 ${tempDiv.innerHTML}
@@ -270,9 +270,9 @@ export default {
             const allInputsFilled = Object.values(inputValues.value).every(
                 (val) => val.trim() !== ""
             );
-            const subjectFilled = subject.value.trim() !== "";
+            // const subjectFilled = subject.value.trim() !== "";
 
-            return !allInputsFilled || !subjectFilled;
+            return !allInputsFilled /*|| !subjectFilled*/;
         });
 
         return {

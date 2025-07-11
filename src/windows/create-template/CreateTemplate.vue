@@ -71,6 +71,7 @@ export default {
         const templateBody = ref("");
         const isEditingTemplate = ref(false);
         const originalTemplate = ref(null);
+        const section = ref("Uncategorized Templates");
 
         onMounted(() => {
             chrome.storage.session.get(["templateToEdit"], (result) => {
@@ -79,7 +80,9 @@ export default {
 
                     templateTitle.value = result.templateToEdit.title || "";
                     templateBody.value = result.templateToEdit.body || "";
-
+                    section.value =
+                        result.templateToEdit.section ||
+                        "Uncategorized Templates";
                     if (
                         result.templateToEdit.title &&
                         result.templateToEdit.body
@@ -117,7 +120,8 @@ export default {
                 id: originalTemplate.value.id,
                 title: templateTitle.value.trim(),
                 body: templateBody.value.trim(),
-                section: originalTemplate.value.section,
+                section: section.value,
+                // section: originalTemplate.value.section,
             };
 
             chrome.storage.local.get(["templates"], (result) => {
@@ -160,7 +164,8 @@ export default {
                 id: crypto.randomUUID(),
                 title: templateTitle.value.trim(),
                 body: templateBody.value.trim(),
-                section: "Miscellaneous",
+                section: section.value,
+                // section: "Uncategorized Templates",
             };
 
             chrome.storage.local.get(["templates"], (result) => {
@@ -189,6 +194,7 @@ export default {
         };
 
         return {
+            section,
             templateTitle,
             templateBody,
             isEditingTemplate,

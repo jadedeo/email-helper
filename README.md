@@ -3,7 +3,7 @@
 **San Francisco Recreation & Parks**\
 _2025 MHCI Capstone_
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam molestie leo odio. Proin rutrum cursus euismod. Sed augue enim, convallis pulvinar nunc eget, convallis aliquet magna. Aliquam ac est vel tellus laoreet consectetur commodo et purus. Maecenas rutrum pulvinar finibus. Interdum et malesuada fames ac ante ipsum primis in faucibus. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla ipsum turpis, auctor non euismod sed, molestie quis tortor.
+## [Demo Video 7.11.25](https://google.com)
 
 ## Tech Stack
 
@@ -11,21 +11,19 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam molestie leo odi
 -   [Vue 3 (Composition API)](https://vuejs.org/)
 -   [TipTap](https://tiptap.dev/product/editor)
 -   [Tailwind CSS](https://tailwindcss.com/)
-    https://www.npmjs.com/package/vue-material-design-icons
+-   [Vue Material Design Iconsn](https://www.npmjs.com/package/vue-material-design-icons)
 
 ## Requirements
 
 This extension is intended for desktop use. It utilizes Manifest 3 & is supported by Chromium browsers (Chrome, Edge, Opera, etc.)
 
-Anything about setting up default emailing behavior
+In order to use the mailTo feature, users must configure a default mail app for their desktop.
 
-To build and run the application, you must first install:
-
--   [NodeJS](https://nodejs.org/en/download/)
+To build and run the application, users must first install [npm & NodeJS](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm); they should follow the downloading instructions according to their operating system.
 
 ## Installing Dependencies
 
-To generate a production version of the extension that can be loaded into the browser, navigate into the app repo & run the following command.
+To generate a production version of the extension that can be loaded into the browser, navigate into the app repo via the terminal/command line & run the following command.
 
 ```bash
 $ npm install && npm run build
