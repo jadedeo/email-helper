@@ -70,12 +70,12 @@
         </div>
 
         <div class="flex justify-end gap-5 w-fill">
-            <Button
+            <!-- <Button
                 @button-click="closeGenerateEmail"
                 label="Cancel"
                 variant="outlined"
                 class="!w-fit !px-10"
-            />
+            /> -->
 
             <Button
                 @button-click="copyFormattedEmail"
@@ -116,8 +116,11 @@ export default {
                 if (data.templatesToFill) {
                     templates.value = data.templatesToFill;
 
-                    templates.value.forEach((template) => {
+                    templates.value.forEach((template, index) => {
                         extractedHTML.value += template.body;
+                        if (index < templates.value.length - 1) {
+                            extractedHTML.value += `<div data-template-split style="height: 1.5rem;"></div>`;
+                        }
                     });
 
                     console.log(extractedHTML.value);
@@ -174,11 +177,9 @@ export default {
         };
 
         const launchPlaintextEmail = () => {
-            // Create a temporary DOM element to parse the HTML
             const tempDiv = document.createElement("div");
             tempDiv.innerHTML = filledHTML.value;
 
-            // Traverse the nodes and convert block-level elements into line breaks
             const walk = (node) => {
                 let text = "";
 
@@ -191,16 +192,15 @@ export default {
                         if (tag === "br") {
                             text += "\n";
                         } else if (
+                            tag === "div" &&
+                            child.dataset.templateSplit !== undefined
+                        ) {
+                            // Spacer between templates
+                            text += "\n\n";
+                        } else if (
                             ["p", "div", "section", "li"].includes(tag)
                         ) {
-                            text += walk(child) + "\n\n";
-                        } else if (
-                            tag === "span" ||
-                            tag === "strong" ||
-                            tag === "b" ||
-                            tag === "em"
-                        ) {
-                            text += walk(child);
+                            text += walk(child) + "\n";
                         } else {
                             text += walk(child);
                         }
@@ -211,7 +211,8 @@ export default {
             };
 
             const plainTextWithBreaks = walk(tempDiv)
-                .replace(/\n{3,}/g, "\n\n") // limit multiple line breaks
+                .replace(/\n{3,}/g, "\n\n") // collapse excessive spacing
+                .replace(/[ \t]+\n/g, "\n") // clean trailing whitespace
                 .trim();
 
             const mailtoLink = `mailto:?subject=${encodeURIComponent(
@@ -222,13 +223,42 @@ export default {
 
         const copyFormattedEmail = async () => {
             try {
+                const tempDiv = document.createElement("div");
+                tempDiv.innerHTML = filledHTML.value;
+
+                // STEP 1: Replace spacer divs with <br><br>
+                tempDiv
+                    .querySelectorAll("[data-template-split]")
+                    .forEach((el) => {
+                        const spacer = document.createElement("span");
+                        spacer.innerHTML = "&nbsp;";
+                        spacer.style.display = "block";
+                        spacer.style.lineHeight = "1.5em";
+                        spacer.style.marginTop = "0.75em";
+                        spacer.style.marginBottom = "0.75em";
+                        el.replaceWith(spacer);
+                    });
+
+                // STEP 2: Normalize spacing on all <p> tags
+                tempDiv.querySelectorAll("p").forEach((p) => {
+                    p.style.margin = "0";
+                });
+
+                // STEP 3: Wrap in root styling container (optional, but nice for consistency)
+                const wrappedHTML = `
+            <div style="font-family: Calibri, sans-serif; font-size: 11pt;">
+                ${tempDiv.innerHTML}
+            </div>
+        `;
+
                 await navigator.clipboard.write([
                     new ClipboardItem({
-                        "text/html": new Blob([filledHTML.value], {
+                        "text/html": new Blob([wrappedHTML], {
                             type: "text/html",
                         }),
                     }),
                 ]);
+
                 alert("Formatted email copied to clipboard!");
             } catch (err) {
                 console.error("Clipboard copy failed:", err);
