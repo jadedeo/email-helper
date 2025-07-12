@@ -1,4 +1,5 @@
 // public/background.js
+// TODO: only have one window open at a time
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg?.type === "open-or-focus-create-template") {
@@ -47,8 +48,8 @@ function createNewWindow(file, windowIdKey, payload = null, sendResponse) {
         const availWidth = primaryDisplay.workArea.width;
         const availHeight = primaryDisplay.workArea.height;
 
-        const width = 1000;
-        const height = 800;
+        const width = 800;
+        const height = 600;
         const left = Math.round(availWidth / 2 - width / 2);
         const top = Math.round(availHeight / 2 - height / 2);
 

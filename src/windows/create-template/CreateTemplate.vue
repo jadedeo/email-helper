@@ -184,10 +184,10 @@ export default {
         });
 
         const closeCreateTemplate = () => {
-            // console.log("CLOSE CREATE TEMPLATE WINDOW");
             window.close();
         };
 
+        // TODO: implement template deletion logic
         const handleDeleteTemplate = () => {
             console.log("handleDeleteTemplate");
         };

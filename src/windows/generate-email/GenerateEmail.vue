@@ -197,6 +197,12 @@ export default {
 
                         if (tag === "br") {
                             text += "\n";
+                        } else if (tag === "p") {
+                            if (child.textContent.trim() === "") {
+                                text += "\n";
+                            } else {
+                                text += walk(child) + "\n";
+                            }
                         } else if (
                             tag === "div" &&
                             child.dataset.templateSplit !== undefined
@@ -246,6 +252,13 @@ export default {
 
                 tempDiv.querySelectorAll("p, h1, h2, h3").forEach((p) => {
                     p.style.margin = "0";
+                });
+
+                tempDiv.querySelectorAll("p").forEach((p) => {
+                    if (p.innerHTML.trim() === "") {
+                        p.innerHTML = "&nbsp;";
+                    }
+                    p.style.margin = "0 0 1em 0"; // give all p tags bottom spacing
                 });
 
                 const wrappedHTML = `
