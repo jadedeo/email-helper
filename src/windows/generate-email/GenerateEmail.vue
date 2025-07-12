@@ -2,10 +2,10 @@
 <template>
     <div class="w-full bg-gray-100 p-10 flex flex-col gap-5 h-dvh">
         <h3>Email Response Writer</h3>
-        <div class="flex gap-3 flex-1">
+        <div class="flex gap-3 flex-1 overflow-hidden">
             <!-- LEFT PANEL -->
             <div
-                class="bg-white rounded-md h-full w-full p-5 flex flex-col gap-5"
+                class="bg-white rounded-md h-full p-5 flex flex-col flex-[1] gap-5 overflow-hidden"
             >
                 <!-- SELECTIONS -->
                 <section class="flex flex-col gap-2">
@@ -27,9 +27,7 @@
                 <hr />
 
                 <!-- ADD INPUTS -->
-                <section
-                    class="flex flex-col gap-5 overflow-auto max-h-[40vh] pr-2"
-                >
+                <section class="flex flex-col flex-1 overflow-auto gap-5 pr-2">
                     <div>
                         <h3>Add Inputs</h3>
                         <p>Please complete the missing inputs in this email.</p>
@@ -55,8 +53,10 @@
             </div>
 
             <!-- RIGHT PANEL -->
-            <div class="bg-white rounded-md h-full w-full">
-                <section class="flex flex-col p-5 gap-3">
+            <div
+                class="bg-white rounded-md h-full w-full flex flex-col flex-[2]"
+            >
+                <section class="flex flex-col p-5 gap-3 flex-1 overflow-auto">
                     <label for="input-subject"></label>
                     <input
                         v-model="subject"
@@ -68,10 +68,7 @@
 
                     <hr />
                     <!-- TODO: make preview editable -->
-                    <div
-                        v-html="filledHTML"
-                        class="overflow-auto max-h-[40vh]"
-                    ></div>
+                    <div v-html="filledHTML" class="overflow-auto"></div>
                 </section>
             </div>
         </div>
