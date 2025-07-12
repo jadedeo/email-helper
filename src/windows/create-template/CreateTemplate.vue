@@ -1,14 +1,21 @@
 <!-- src/windows/create-template/CreateTemplate.vue -->
 <template>
     <div class="w-full bg-gray-100 p-10 flex flex-col gap-5 h-dvh">
-        <!-- <p>isEditingTemplate: {{ isEditingTemplate }}</p>
-        <p>disableSaveTemplate: {{ disableSaveTemplate }}</p> -->
-        <!-- <div class="flex gap-2"> -->
+        <transition name="fade">
+            <InfoBox
+                v-if="showInfoBox"
+                heading="Your changes will be local"
+                body="Changes made to this template will not update anyone else's, only yours."
+                colored-bg
+                dismissable
+                @dismiss="showInfoBox = false"
+            />
+        </transition>
         <input
             type="text"
             v-model="templateTitle"
-            placeholder="Untitled Template"
-            class="text-lg font-bold !border-none !p-0 placeholder-gray-600"
+            placeholder="Template Title"
+            class="standard font-bold !bg-white max-w-1/3"
         />
 
         <editor v-model="templateBody" />
@@ -23,7 +30,7 @@
                 @button-click="handleDeleteTemplate"
                 label="Delete template"
                 variant="link"
-                class="!text-red-500"
+                class="!text-red-700"
             />
             <div class="flex justify-end gap-2 w-fill">
                 <Button
@@ -43,7 +50,7 @@
                     v-if="isEditingTemplate"
                     @button-click="saveTemplate"
                     :disabled="disableSaveTemplate"
-                    label="Save template"
+                    label="Save"
                     class="!w-fit !px-10"
                 />
             </div>
@@ -57,13 +64,14 @@ import DeleteIcon from "vue-material-design-icons/Delete.vue";
 import "../../../src/style.css";
 import Editor from "../../components/Editor.vue";
 import Button from "../../components/Button.vue";
-// import CustomInputComponent from "../../components/CustomInputComponent.vue";
+import InfoBox from "../../components/InfoBox.vue";
 
 export default {
     components: {
         Editor,
         Button,
         DeleteIcon,
+        InfoBox,
     },
     setup() {
         const templateTitle = ref("");
@@ -71,6 +79,7 @@ export default {
         const isEditingTemplate = ref(false);
         const originalTemplate = ref(null);
         const section = ref("Uncategorized Templates");
+        const showInfoBox = ref(true);
 
         onMounted(() => {
             chrome.storage.session.get(["templateToEdit"], (result) => {
@@ -204,6 +213,7 @@ export default {
             disableSaveTemplate,
             closeCreateTemplate,
             createTemplate,
+            showInfoBox,
         };
     },
 };

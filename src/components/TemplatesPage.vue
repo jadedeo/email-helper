@@ -15,7 +15,7 @@
                 "
             >
                 <div>
-                    <!-- TODO: make this into a component substitute in draggable area too -->
+                    <!-- TODO: make this into a component, substitute in draggable area too -->
                     <div
                         v-if="greetingTemplate"
                         class="flex justify-between items-center py-2"
