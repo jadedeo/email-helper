@@ -1,4 +1,7 @@
 <!-- src/components/CustomInputComponent.vue -->
+<!-- TODO: rename node -->
+<!-- TODO: add dropdown with suggested field names -->
+<!-- TODO: how to handle same field name? -->
 <template>
     <node-view-wrapper class="custom-input">
         <template v-if="isEditing">

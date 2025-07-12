@@ -53,7 +53,13 @@
                     </div>
                 </div>
 
-                <div>
+                <div
+                    :class="
+                        !greetingTemplate && !signOffTemplate
+                            ? 'flex gap-3'
+                            : ''
+                    "
+                >
                     <Button
                         v-if="!greetingTemplate"
                         @button-click="() => addSalutation('greeting')"
@@ -197,6 +203,8 @@
             <!-- </div> -->
         </section>
 
+        <!-- <hr /> -->
+
         <section class="px-6 flex flex-col gap-5">
             <input
                 v-if="displaySectionField"
@@ -214,14 +222,12 @@
                 />
                 <Button
                     label="Create section"
-                    variant="outlined"
+                    variant="filled"
                     :disabled="disableCreateSection"
                     @button-click="createSection"
                 />
             </div>
 
-            <!-- TODO: implement adding to specific section -->
-            <!-- <hr /> -->
             <Button
                 v-if="!displaySectionField"
                 label="Add section"

@@ -13,12 +13,14 @@
                     <div class="flex gap-1 flex-wrap">
                         <span
                             class="bg-lime-50 border-1 border-solid border-lime-500 rounded-md px-2 py-1 min-w-fit"
-                            v-for="template in templates"
+                            v-for="template in templates.filter(
+                                (template) => template.section !== 'Salutations'
+                            )"
                         >
                             {{ template.title }}
                         </span>
                     </div>
-                    <!-- TODO: add later/make selections editable -->
+                    <!-- TODO: make selections editable -->
                     <!-- <Button label="Add More" variant="link" /> -->
                 </section>
 
@@ -63,34 +65,37 @@
                         placeholder="Subject"
                         class="!border-none !p-0"
                     />
-                    <!-- <small>{{ subject }}</small> -->
+
                     <hr />
                     <!-- TODO: make preview editable -->
-                    <div v-html="filledHTML"></div>
+                    <div
+                        v-html="filledHTML"
+                        class="overflow-auto max-h-[40vh]"
+                    ></div>
                 </section>
             </div>
         </div>
 
-        <div class="flex justify-end gap-5 w-fill">
-            <!-- <Button
-                @button-click="closeGenerateEmail"
-                label="Cancel"
-                variant="outlined"
-                class="!w-fit !px-10"
-            /> -->
+        <div class="flex justify-end gap-3 w-fill">
+            <!-- TOAST HERE -->
+
+            <transition name="fade">
+                <div v-if="showToast" class="text-gray-500 py-2">Copied!</div>
+            </transition>
 
             <Button
                 @button-click="copyFormattedEmail"
                 label="Copy with Formatting"
                 variant="outlined"
-                class="!w-fit !px-10"
+                class="!w-fit !px-5"
+                :disabled="disableCopyAndDraft"
             />
 
             <Button
                 @button-click="launchPlaintextEmail"
                 label="Create Draft in Mail Client"
-                class="!w-fit !px-10"
-                :disabled="disableLaunchInbox"
+                class="!w-fit !px-5"
+                :disabled="disableCopyAndDraft"
             />
         </div>
     </div>
@@ -112,6 +117,8 @@ export default {
 
         let extractedHTML = ref("");
         const inputValues = ref({});
+
+        const showToast = ref(false);
 
         onMounted(() => {
             chrome.storage.session.get(["templatesToFill"], (data) => {
@@ -143,7 +150,7 @@ export default {
                         inputValues.value[label] = "";
                     });
 
-                    console.log("Input labels found:", [...uniqueLabels]);
+                    console.log("input labels found", [...uniqueLabels]);
                 }
             });
         });
@@ -197,7 +204,7 @@ export default {
                             tag === "div" &&
                             child.dataset.templateSplit !== undefined
                         ) {
-                            // Spacer between templates
+                            // spacer between templates
                             text += "\n\n";
                         } else if (
                             ["p", "div", "section", "li"].includes(tag)
@@ -228,7 +235,6 @@ export default {
                 const tempDiv = document.createElement("div");
                 tempDiv.innerHTML = filledHTML.value;
 
-                // STEP 1: Replace spacer divs with <br><br>
                 tempDiv
                     .querySelectorAll("[data-template-split]")
                     .forEach((el) => {
@@ -241,7 +247,7 @@ export default {
                         el.replaceWith(spacer);
                     });
 
-                tempDiv.querySelectorAll("p").forEach((p) => {
+                tempDiv.querySelectorAll("p, h1, h2, h3").forEach((p) => {
                     p.style.margin = "0";
                 });
 
@@ -259,17 +265,19 @@ export default {
                     }),
                 ]);
 
-                alert("Formatted email copied to clipboard!");
+                showToast.value = true;
+                setTimeout(() => (showToast.value = false), 2000);
             } catch (err) {
                 console.error("Clipboard copy failed:", err);
                 alert("Could not copy email. Please try again.");
             }
         };
 
-        const disableLaunchInbox = computed(() => {
+        const disableCopyAndDraft = computed(() => {
             const allInputsFilled = Object.values(inputValues.value).every(
                 (val) => val.trim() !== ""
             );
+            // TODO: run by jyaleen - don't think it makes sense anymore for subject to be required
             // const subjectFilled = subject.value.trim() !== "";
 
             return !allInputsFilled /*|| !subjectFilled*/;
@@ -281,13 +289,23 @@ export default {
             extractedHTML,
             inputValues,
             closeGenerateEmail,
-            disableLaunchInbox,
+            disableCopyAndDraft,
             filledHTML,
             launchPlaintextEmail,
             copyFormattedEmail,
+            showToast,
         };
     },
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+</style>

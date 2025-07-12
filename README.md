@@ -3,7 +3,9 @@
 **San Francisco Recreation & Parks**\
 _2025 MHCI Capstone_
 
-## [Demo Video 7.11.25](https://google.com)
+## [Demo Video 7.11.25](https://drive.google.com/file/d/1ISjtgeS06fAfZKRHPG4_cJV7OEPZCvo_/view?usp=sharing)
+
+Styling is a bit off at the moment, please disregard!
 
 ## Tech Stack
 
