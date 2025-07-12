@@ -1,6 +1,4 @@
-<!--  src/components/Component.vue -->
-
-<!-- TODO: don't allow user to "apply" empty custom input -->
+<!-- src/components/CustomInputComponent.vue -->
 <template>
     <node-view-wrapper class="custom-input">
         <template v-if="isEditing">
@@ -21,60 +19,63 @@
                     @click="apply"
                     label="Apply"
                     class="!bg-transparent !text-lime-700"
-                ></Button>
+                />
             </div>
         </template>
+
         <template v-else>
             <div
                 class="bg-lime-50 border-solid border-1 border-lime-500 py-1 px-2 rounded-full"
+                @click="isEditing = true"
             >
-                <span class="label" contenteditable="false">{{
-                    node.attrs.label
-                }}</span>
+                <span class="label" contenteditable="false">
+                    {{ node.attrs.label }}
+                </span>
             </div>
         </template>
     </node-view-wrapper>
 </template>
 
 <script>
+import { ref } from "vue";
 import { nodeViewProps, NodeViewWrapper } from "@tiptap/vue-3";
 import TextIcon from "vue-material-design-icons/Text.vue";
-
-import Button from "../components/Button.vue";
+import Button from "./Button.vue";
 
 export default {
+    props: nodeViewProps,
     components: {
         NodeViewWrapper,
         Button,
         TextIcon,
     },
+    setup(props, { emit }) {
+        const inputValue = ref(props.node.attrs.label || "");
+        const isEditing = ref(!props.node.attrs.label);
 
-    props: nodeViewProps,
+        const apply = () => {
+            const trimmed = inputValue.value.trim();
 
-    data() {
-        return {
-            inputValue: this.node.attrs.label,
-            isEditing: !this.node.attrs.label,
+            // block empty labels
+            if (!trimmed) return;
+            props.updateAttributes({ label: trimmed });
+            isEditing.value = false;
         };
-    },
-    methods: {
-        apply() {
-            this.updateAttributes({
-                label: this.inputValue.trim(),
-            });
-            this.isEditing = false;
-        },
+
+        return {
+            inputValue,
+            isEditing,
+            apply,
+        };
     },
 };
 </script>
 
 <style scoped>
-/* TODO: clean out these styles */
 .custom-input {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.2rem 0.5rem;
 }
 
 .input {

@@ -2,29 +2,15 @@
 
 <template>
     <div class="flex flex-col gap-5 mb-6">
-        <!-- TODO: turn this condition into computed property; used 4 times here -->
-        <section
-            v-if="
-                templates.filter(
-                    (template) => template.section !== 'Salutations'
-                ).length == 0 &&
-                greetingTemplate &&
-                signOffTemplate
-            "
-            class="flex flex-col gap-2 px-6"
-        >
+        <section v-if="!hasCoreTemplates" class="flex flex-col gap-2 px-6">
             <h2>You don't have any templates yet!</h2>
             <p>
                 Navigate to the templates tab to fill out your first template.
             </p>
         </section>
+
         <section
-            v-else-if="
-                templates.filter(
-                    (template) => template.section !== 'Salutations'
-                ).length > 0 &&
-                (!greetingTemplate || !signOffTemplate)
-            "
+            v-else-if="hasCoreTemplates && !hasSalutations"
             class="flex flex-col gap-2 px-6"
         >
             <h2>You haven't finished your salutations!</h2>
@@ -40,23 +26,15 @@
                 approval. These selections will be used to populate a template.
             </p>
         </section>
-        <hr
-            v-if="
-                templates.filter(
-                    (template) => template.section !== 'Salutations'
-                ).length > 0 &&
-                greetingTemplate &&
-                signOffTemplate
-            "
-        />
+        <hr v-if="hasCoreTemplates && hasSalutations" />
 
         <section
             v-if="
                 templates.filter(
                     (template) => template.section !== 'Salutations'
                 ).length > 0 &&
-                greetingTemplate &&
-                signOffTemplate
+                hasCoreTemplates &&
+                hasSalutations
             "
             class="px-6"
             v-for="(section, index) in populatedSections"
@@ -90,8 +68,8 @@
                     templates.filter(
                         (template) => template.section !== 'Salutations'
                     ).length > 0 &&
-                    greetingTemplate &&
-                    signOffTemplate
+                    hasCoreTemplates &&
+                    hasSalutations
                 "
             />
         </section>
@@ -100,8 +78,8 @@
                 templates.filter(
                     (template) => template.section !== 'Salutations'
                 ).length > 0 &&
-                greetingTemplate &&
-                signOffTemplate
+                hasCoreTemplates &&
+                hasSalutations
             "
             class="px-6"
         >
@@ -175,10 +153,18 @@ export default {
             )
         );
 
+        const hasCoreTemplates = computed(() => {
+            return templates.value.some((t) => t.section !== "Salutations");
+        });
+
+        const hasSalutations = computed(() => {
+            return !!greetingTemplate.value && !!signOffTemplate.value;
+        });
+
         const populatedSections = computed(() =>
-            [...sections.value, "Uncategorized Templates"].filter(
-                (s) => sectionTemplates.value[s]?.length
-            )
+            [...sections.value, "Uncategorized Templates"]
+                .filter((s) => sectionTemplates.value[s]?.length)
+                .filter((s) => s !== "Salutations")
         );
 
         const disableNext = computed(() => {
@@ -213,6 +199,10 @@ export default {
             populatedSections,
             sectionTemplates,
             openOrFocusGenerateEmailWindow,
+            greetingTemplate,
+            signOffTemplate,
+            hasCoreTemplates,
+            hasSalutations,
         };
     },
 };

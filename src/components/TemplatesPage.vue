@@ -18,7 +18,7 @@
                     <!-- TODO: make this into a component substitute in draggable area too -->
                     <div
                         v-if="greetingTemplate"
-                        class="flex justify-between items-center cursor-grab py-3"
+                        class="flex justify-between items-center py-2"
                     >
                         <div class="flex gap-1 items-center font-semibold">
                             Greeting
@@ -36,7 +36,7 @@
                     <hr v-if="greetingTemplate && signOffTemplate" />
                     <div
                         v-if="signOffTemplate"
-                        class="flex justify-between items-center cursor-grab py-3"
+                        class="flex justify-between items-center py-2"
                     >
                         <div class="flex gap-1 items-center font-semibold">
                             Sign-off
@@ -120,77 +120,81 @@
 
         <section v-else>
             <!-- HAS TEMPLATES -->
-            <div>
-                <div
-                    v-for="sectionName in [
-                        ...sections.filter((s) => s !== 'Salutations'),
-                        'Uncategorized Templates',
-                    ]"
-                    :key="sectionName"
-                >
-                    <div class="my-5 px-6 flex flex-col gap-2">
-                        <h3>
-                            {{ sectionName }}
-                        </h3>
-                        <InfoBox
-                            v-if="sectionName === 'Uncategorized Templates'"
-                            heading="These templates do not have a section"
-                            body="You may want to add them to an existing section or create a new one."
-                        />
+            <!-- <div> -->
+            <div
+                v-for="sectionName in [
+                    ...sections.filter((s) => s !== 'Salutations'),
+                    'Uncategorized Templates',
+                ]"
+                :key="sectionName"
+            >
+                <div class="px-6 flex flex-col gap-2">
+                    <h3>
+                        {{ sectionName }}
+                    </h3>
+                    <InfoBox
+                        v-if="sectionName === 'Uncategorized Templates'"
+                        heading="These templates do not have a section"
+                        body="You may want to add them to an existing section or create a new one."
+                    />
 
-                        <draggable
-                            :list="sectionTemplates[sectionName] || []"
-                            group="templates"
-                            itemKey="id"
-                            @change="(e) => onDragChange(e, sectionName)"
-                        >
-                            <template #item="{ element, index: templateIndex }">
-                                <div>
+                    <draggable
+                        :list="sectionTemplates[sectionName] || []"
+                        group="templates"
+                        itemKey="id"
+                        @change="(e) => onDragChange(e, sectionName)"
+                    >
+                        <template #item="{ element, index: templateIndex }">
+                            <div>
+                                <div
+                                    class="flex justify-between items-center cursor-grab py-2"
+                                >
                                     <div
-                                        class="flex justify-between items-center cursor-grab py-3"
+                                        class="flex gap-1 items-center font-semibold"
                                     >
-                                        <div
-                                            class="flex gap-1 items-center font-semibold"
-                                        >
-                                            <DragVerticalIcon :size="18" />
-                                            {{ element.title }}
-                                        </div>
-                                        <PencilOutlineIcon
-                                            :size="20"
-                                            @click="
-                                                () =>
-                                                    openOrFocusCreateTemplateWindow(
-                                                        element
-                                                    )
-                                            "
-                                        />
+                                        <DragVerticalIcon :size="18" />
+                                        {{ element.title }}
                                     </div>
-
-                                    <hr
-                                        v-if="
-                                            templateIndex <
-                                            (sectionTemplates[sectionName]
-                                                ?.length || 0) -
-                                                1
+                                    <PencilOutlineIcon
+                                        :size="20"
+                                        @click="
+                                            () =>
+                                                openOrFocusCreateTemplateWindow(
+                                                    element
+                                                )
                                         "
-                                        class="border-gray-200"
                                     />
                                 </div>
-                            </template>
-                        </draggable>
-                        <div class="w-full">
-                            <Button
-                                @button-click="
-                                    () => openOrFocusCreateTemplateWindow()
-                                "
-                                label="Add template"
-                                variant="link"
-                            ></Button>
-                        </div>
+
+                                <hr
+                                    v-if="
+                                        templateIndex <
+                                        (sectionTemplates[sectionName]
+                                            ?.length || 0) -
+                                            1
+                                    "
+                                />
+                            </div>
+                        </template>
+                    </draggable>
+
+                    <div class="w-full">
+                        <Button
+                            @button-click="
+                                () =>
+                                    openOrFocusCreateTemplateWindow(
+                                        null,
+                                        sectionName
+                                    )
+                            "
+                            label="Add template"
+                            variant="link"
+                        />
                     </div>
-                    <hr />
                 </div>
+                <hr class="my-5" />
             </div>
+            <!-- </div> -->
         </section>
 
         <section class="px-6 flex flex-col gap-5">
@@ -267,14 +271,9 @@ export default {
                 if (Array.isArray(result.sections)) {
                     sections.value = result.sections;
                 } else {
-                    // If missing or invalid, initialize with empty array
-                    // console.warn(
-                    //     "⚠️ Invalid or missing sections, initializing."
-                    // );
                     sections.value = [];
                 }
 
-                // Now, guaranteed safe to check .includes
                 if (!sections.value.includes("Salutations")) {
                     sections.value.push("Salutations");
 
@@ -346,7 +345,10 @@ export default {
             return grouped;
         });
 
-        const openOrFocusCreateTemplateWindow = (template = null) => {
+        const openOrFocusCreateTemplateWindow = (
+            template = null,
+            section = null
+        ) => {
             chrome.runtime.sendMessage(
                 {
                     type: "open-or-focus-create-template",
@@ -357,7 +359,12 @@ export default {
                               body: template.body,
                               section: template.section,
                           }
-                        : null,
+                        : {
+                              id: null,
+                              title: "",
+                              body: "",
+                              section: section || "",
+                          },
                 },
                 (response) => {
                     console.log("Response:", response);

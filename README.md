@@ -19,7 +19,7 @@ This extension is intended for desktop use. It utilizes Manifest 3 & is supporte
 
 In order to use the mailTo feature, users must configure a default mail app for their desktop.
 
-To build and run the application, users must first install [npm & NodeJS](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm); they should follow the downloading instructions according to their operating system.
+To build and run the application locally, users must first install [npm & NodeJS](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm); they should follow the downloading instructions according to their operating system.
 
 ## Cloning Repository
 
