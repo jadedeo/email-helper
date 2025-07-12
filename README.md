@@ -13,7 +13,7 @@ Styling is a bit off at the moment, please disregard!
 -   [Vue 3 (Composition API)](https://vuejs.org/)
 -   [TipTap](https://tiptap.dev/product/editor)
 -   [Tailwind CSS](https://tailwindcss.com/)
--   [Vue Material Design Iconsn](https://www.npmjs.com/package/vue-material-design-icons)
+-   [Vue Material Design Icons](https://www.npmjs.com/package/vue-material-design-icons)
 
 ## Requirements
 
@@ -25,7 +25,7 @@ To build and run the application locally, users must first install [npm & NodeJS
 
 ## Cloning Repository
 
-Clone the project repository using its web URL:
+Clone the project repository via the terminal/command line using its web URL:
 
 ```bash
 $ git clone https://github.com/jadedeo/email-helper.git
@@ -35,9 +35,7 @@ For more information, visit [GitHub Docs | Cloning a repository](https://docs.gi
 
 ## Installing Dependencies
 
-To generate a production version of the extension that can be loaded into the browser, navigate into the app repo via the terminal/command line. For me, this looks like:
-
-Once inside the application folder, run the following command.
+To generate a production version of the extension that can be loaded into the browser, navigate into the app repo and ance inside, run the following command.
 
 ```bash
 $ npm install && npm run build
