@@ -30,7 +30,7 @@
                 @button-click="handleDeleteTemplate"
                 label="Delete template"
                 variant="link"
-                class="!text-red-700"
+                class="!text-red-600"
             />
             <div class="flex justify-end gap-2 w-fill">
                 <Button
