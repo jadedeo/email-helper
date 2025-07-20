@@ -2,6 +2,12 @@
 <template>
     <div class="flex flex-col gap-5 mb-6">
         <section class="flex flex-col gap-2 px-6">
+            <Button
+                @button-click="handleExportTemplates"
+                label="Export all templates"
+            />
+            <input type="file" ref="file" @change="handleImportTemplates" />
+
             <h2>Salutation</h2>
             <InfoBox
                 heading="Salutations are automatically applied"
@@ -31,6 +37,7 @@
                                         greetingTemplate
                                     )
                             "
+                            class="cursor-pointer"
                         />
                     </div>
                     <hr v-if="greetingTemplate && signOffTemplate" />
@@ -49,6 +56,7 @@
                                         signOffTemplate
                                     )
                             "
+                            class="cursor-pointer"
                         />
                     </div>
                 </div>
@@ -241,6 +249,8 @@
 
 <script>
 import { ref, onMounted, computed } from "vue";
+import { saveAs } from "file-saver";
+
 import CloudUploadIcon from "vue-material-design-icons/CloudUploadOutline.vue";
 import PlusIcon from "vue-material-design-icons/Plus.vue";
 import TextBoxMultipleIcon from "vue-material-design-icons/TextBoxMultiple.vue";
@@ -267,6 +277,8 @@ export default {
         const sections = ref([]);
         const newSection = ref("");
         const displaySectionField = ref(false);
+        let templatesJSON = ref(null);
+        let file = ref(null);
 
         onMounted(() => {
             chrome.storage.local.get(["templates", "sections"], (result) => {
@@ -283,14 +295,7 @@ export default {
                 if (!sections.value.includes("Salutations")) {
                     sections.value.push("Salutations");
 
-                    chrome.storage.local.set(
-                        { sections: sections.value },
-                        () => {
-                            chrome.storage.local.get("sections", (res) => {
-                                console.log("✅ Saved sections:", res.sections);
-                            });
-                        }
-                    );
+                    chrome.storage.local.set({ sections: sections.value });
                 } else {
                     console.log("sections", sections.value);
                 }
@@ -441,6 +446,98 @@ export default {
             return displaySectionField && newSection.value.trim() === "";
         });
 
+        const handleExportTemplates = () => {
+            console.log("received array:");
+            console.log(templates.value);
+            templatesJSON = JSON.stringify(templates.value);
+            console.log("created JSON:");
+            console.log(templatesJSON);
+
+            const blob = new Blob([templatesJSON], {
+                type: "application/json",
+            });
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, "0");
+            const day = String(now.getDate()).padStart(2, "0");
+            const hours = String(now.getHours()).padStart(2, "0");
+            const minutes = String(now.getMinutes()).padStart(2, "0");
+            const seconds = String(now.getSeconds()).padStart(2, "0");
+
+            saveAs(
+                blob,
+                `mytemplates-${year}-${month}-${day}_${hours}-${minutes}-${seconds}.json`
+            );
+        };
+
+        const handleImportTemplates = () => {
+            // console.log("retrieved JSON:");
+            // console.log(templatesJSON);
+
+            // let newArray = JSON.parse(templatesJSON);
+            // console.log("transformed to array:");
+            // console.log(newArray);
+
+            const reader = new FileReader();
+
+            try {
+                file.value = file.value.files[0];
+                reader.readAsText(file.value);
+
+                reader.onload = (res) => {
+                    // console.log("FILE CONTENTS:");
+                    // console.log(res.target.result);
+
+                    const parsed = JSON.parse(res.target.result);
+                    const importedTemplates = Array.isArray(parsed)
+                        ? parsed
+                        : [];
+
+                    console.log(importedTemplates);
+
+                    //replace ids of imported templates (just in case there are duplicates)
+                    const templatesWithNewIds = importedTemplates.map(
+                        (template) => ({
+                            ...template,
+                            id: crypto.randomUUID(),
+                        })
+                    );
+
+                    // add imports to templates array in chrome.storage.local
+                    chrome.storage.local.get(["templates"], (result) => {
+                        const existingTemplates = result.templates || [];
+
+                        // remove old salutations
+                        const filteredTemplates = existingTemplates.filter(
+                            (t) =>
+                                !(
+                                    t.section === "Salutations" &&
+                                    (t.title === "Greeting" ||
+                                        t.title === "Sign-off")
+                                )
+                        );
+
+                        // ...
+                        const mergedTemplates = [
+                            ...filteredTemplates,
+                            ...templatesWithNewIds,
+                        ];
+
+                        chrome.storage.local.set(
+                            { templates: mergedTemplates },
+                            () => {
+                                console.log("Templates successfully imported.");
+                                templates.value = mergedTemplates;
+                            }
+                        );
+                    });
+                };
+            } catch (error) {
+                console.error("failed to import templates:", error);
+            }
+        };
+
         return {
             templates,
             sections,
@@ -455,9 +552,12 @@ export default {
             addSalutation,
             sectionTemplates,
             onDragChange,
-
             greetingTemplate,
             signOffTemplate,
+            handleExportTemplates,
+            handleImportTemplates,
+            templatesJSON,
+            file,
         };
     },
 };

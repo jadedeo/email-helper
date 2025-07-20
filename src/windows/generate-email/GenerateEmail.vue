@@ -277,8 +277,8 @@ export default {
 
                 showToast.value = true;
                 setTimeout(() => (showToast.value = false), 2000);
-            } catch (err) {
-                console.error("Clipboard copy failed:", err);
+            } catch (error) {
+                console.error("Clipboard copy failed:", error);
                 alert("Could not copy email. Please try again.");
             }
         };

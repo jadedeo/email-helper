@@ -3,7 +3,7 @@
     <div class="w-full bg-gray-100 p-10 flex flex-col gap-5 h-dvh">
         <transition name="fade">
             <InfoBox
-                v-if="showInfoBox"
+                v-if="showInfoBox && isEditingTemplate"
                 heading="Your changes will be local"
                 body="Changes made to this template will not update anyone else's, only yours."
                 colored-bg
@@ -11,6 +11,7 @@
                 @dismiss="showInfoBox = false"
             />
         </transition>
+
         <input
             type="text"
             v-model="templateTitle"
@@ -25,8 +26,12 @@
             <code>{{ templateTitle }}</code>
             <code>{{ templateBody }}</code>
         </div> -->
-        <div class="flex justify-between items-center">
+        <div
+            class="flex items-center"
+            :class="isEditingTemplate ? 'justify-between' : 'justify-end'"
+        >
             <Button
+                v-if="isEditingTemplate"
                 @button-click="handleDeleteTemplate"
                 label="Delete template"
                 variant="link"
@@ -74,6 +79,8 @@ export default {
         InfoBox,
     },
     setup() {
+        // TODO: deal with what should happen when the user tries to open more than one of these windows
+
         const templateTitle = ref("");
         const templateBody = ref("");
         const isEditingTemplate = ref(false);
@@ -196,9 +203,39 @@ export default {
             window.close();
         };
 
-        // TODO: implement template deletion logic
         const handleDeleteTemplate = () => {
             console.log("handleDeleteTemplate");
+
+            chrome.storage.session.get(["templateToEdit"], (result) => {
+                if (result.templateToEdit) {
+                    const templateToDelete = result.templateToEdit?.id;
+                    if (!templateToDelete) {
+                        console.error("templateToDelete not found");
+                        return;
+                    }
+                    console.log("delete this template:", templateToDelete);
+
+                    chrome.storage.local.get(["templates"], (result) => {
+                        const existingTemplates = result.templates || [];
+
+                        const updatedTemplates = existingTemplates.filter(
+                            (template) => template.id !== templateToDelete
+                        );
+
+                        chrome.storage.local.set(
+                            { templates: updatedTemplates },
+                            () => {
+                                chrome.storage.session.remove(
+                                    "templateToEdit",
+                                    () => {
+                                        window.close();
+                                    }
+                                );
+                            }
+                        );
+                    });
+                }
+            });
         };
 
         return {
