@@ -26,7 +26,6 @@
 </template>
 
 <script>
-import { defineEmits } from "vue";
 import InformationIcon from "vue-material-design-icons/Information.vue";
 import CloseIcon from "vue-material-design-icons/Close.vue";
 

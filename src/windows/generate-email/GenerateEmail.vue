@@ -1,11 +1,11 @@
 <!-- src/windows/generate-email/GenerateEmail.vue -->
 <template>
-    <div class="w-full bg-gray-100 p-10 flex flex-col gap-5 h-dvh">
-        <h3>Email Response Writer</h3>
+    <div class="w-full bg-gray-100 py-3 px-6 flex flex-col gap-5 h-dvh">
+        <!-- <h3>Email Response Writer</h3> -->
         <div class="flex gap-3 flex-1 overflow-hidden">
             <!-- LEFT PANEL -->
             <div
-                class="bg-white rounded-md h-full p-5 flex flex-col flex-[1] gap-5 overflow-hidden"
+                class="bg-white rounded-md h-full p-5 flex flex-col flex-[2] gap-3 overflow-hidden"
             >
                 <!-- SELECTIONS -->
                 <section class="flex flex-col gap-2">
@@ -13,7 +13,7 @@
                     <div class="flex gap-1 flex-wrap">
                         <span
                             class="bg-lime-50 border-1 border-solid border-lime-500 rounded-md px-2 py-1 min-w-fit"
-                            v-for="template in templates.filter(
+                            v-for="template in props.templates.filter(
                                 (template) => template.section !== 'Salutations'
                             )"
                         >
@@ -27,7 +27,7 @@
                 <hr />
 
                 <!-- ADD INPUTS -->
-                <section class="flex flex-col flex-1 overflow-auto gap-5 pr-2">
+                <section class="flex flex-col flex-1 overflow-auto gap-3 pr-2">
                     <div>
                         <h3>Add Inputs</h3>
                         <p>Please complete the missing inputs in this email.</p>
@@ -54,17 +54,19 @@
 
             <!-- RIGHT PANEL -->
             <div
-                class="bg-white rounded-md h-full w-full flex flex-col flex-[2]"
+                class="bg-white rounded-md h-full w-full flex flex-col flex-[5]"
             >
                 <section class="flex flex-col p-5 gap-3 flex-1 overflow-auto">
-                    <label for="input-subject"></label>
-                    <input
-                        v-model="subject"
-                        id="input-subject"
-                        type="text"
-                        placeholder="Subject"
-                        class="!border-none !p-0"
-                    />
+                    <div>
+                        <label for="input-subject"></label>
+                        <input
+                            v-model="subject"
+                            id="input-subject"
+                            type="text"
+                            placeholder="Subject"
+                            class="!border-none !p-0"
+                        />
+                    </div>
 
                     <hr />
                     <!-- TODO: make preview editable -->
@@ -107,48 +109,43 @@ export default {
     components: {
         Button,
     },
-
-    setup() {
+    props: {
+        templates: {
+            type: Array,
+            required: true,
+        },
+    },
+    setup(props) {
         const subject = ref("");
-        const templates = ref([]);
 
         let extractedHTML = ref("");
         const inputValues = ref({});
 
         const showToast = ref(false);
 
+        console.log("Selected templates:", props.templates);
+
         onMounted(() => {
-            chrome.storage.session.get(["templatesToFill"], (data) => {
-                if (data.templatesToFill) {
-                    templates.value = data.templatesToFill;
-
-                    templates.value.forEach((template, index) => {
-                        extractedHTML.value += template.body;
-                        if (index < templates.value.length - 1) {
-                            extractedHTML.value += `<div data-template-split style="height: 1.5rem;"></div>`;
-                        }
-                    });
-
-                    console.log(extractedHTML.value);
-
-                    const placeholderRegex =
-                        /<custom-input\s+label="([^"]+)"\s*><\/custom-input>/g;
-                    const uniqueLabels = new Set();
-                    let match;
-
-                    while (
-                        (match = placeholderRegex.exec(extractedHTML.value)) !==
-                        null
-                    ) {
-                        uniqueLabels.add(match[1]);
-                    }
-
-                    uniqueLabels.forEach((label) => {
-                        inputValues.value[label] = "";
-                    });
-
-                    console.log("input labels found", [...uniqueLabels]);
+            props.templates.forEach((template, index) => {
+                extractedHTML.value += template.body;
+                if (index < props.templates.length - 1) {
+                    extractedHTML.value += `<div data-template-split style="height: 1.5rem;"></div>`;
                 }
+            });
+
+            const placeholderRegex =
+                /<custom-input\s+label="([^"]+)"\s*><\/custom-input>/g;
+            const uniqueLabels = new Set();
+            let match;
+
+            while (
+                (match = placeholderRegex.exec(extractedHTML.value)) !== null
+            ) {
+                uniqueLabels.add(match[1]);
+            }
+
+            uniqueLabels.forEach((label) => {
+                inputValues.value[label] = "";
             });
         });
 
@@ -176,14 +173,6 @@ export default {
 
             return result;
         });
-
-        const closeGenerateEmail = () => {
-            console.log("CLOSE CREATE TEMPLATE WINDOW");
-            // window.close();
-            if (window.location.href.includes("generate-email.html")) {
-                window.close();
-            }
-        };
 
         const launchPlaintextEmail = () => {
             const tempDiv = document.createElement("div");
@@ -297,11 +286,10 @@ export default {
         });
 
         return {
+            props,
             subject,
-            templates,
             extractedHTML,
             inputValues,
-            closeGenerateEmail,
             disableCopyAndDraft,
             filledHTML,
             launchPlaintextEmail,

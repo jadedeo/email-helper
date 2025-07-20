@@ -56,8 +56,10 @@
 </template>
 
 <script>
-import { ref, computed } from "vue";
-import inputOptions from "../lib/defaultCustomInputOptions.json";
+import { ref, computed, onMounted } from "vue";
+
+import { extractFieldNamesFromTemplates } from "../lib/utils";
+import defaultInputOptions from "../lib/defaultCustomInputOptions.json";
 import { nodeViewProps, NodeViewWrapper } from "@tiptap/vue-3";
 import TextIcon from "vue-material-design-icons/Text.vue";
 import Button from "./Button.vue";
@@ -75,8 +77,8 @@ export default {
 
         const filteredOptions = computed(() => {
             const query = inputValue.value.trim().toLowerCase();
-            if (!query) return inputOptions;
-            return inputOptions.filter((opt) =>
+            if (!query) return defaultInputOptions;
+            return defaultInputOptions.filter((opt) =>
                 opt.name.toLowerCase().includes(query)
             );
         });

@@ -1,6 +1,6 @@
 <!-- src/windows/create-template/CreateTemplate.vue -->
 <template>
-    <div class="w-full bg-gray-100 p-10 flex flex-col gap-5 h-dvh">
+    <div class="w-full bg-gray-100 py-3 px-6 flex flex-col gap-5 h-dvh">
         <transition name="fade">
             <InfoBox
                 v-if="showInfoBox && isEditingTemplate"
@@ -114,6 +114,7 @@ export default {
             window.removeEventListener("beforeunload", clearTemplateToEdit);
         });
 
+        // TODO: remove if not helping
         const closeIfNotPopup = () => {
             setTimeout(() => {
                 const popupViews = chrome.runtime.getViews({ type: "popup" });

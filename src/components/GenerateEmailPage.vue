@@ -83,11 +83,10 @@
             "
             class="px-6"
         >
-            <!-- <p>disableNext:{{ disableNext }}</p> -->
             <Button
                 label="Next"
                 variant="outlined"
-                @button-click="() => openOrFocusGenerateEmailWindow()"
+                @button-click="proceedToGenerateEmail"
                 :disabled="disableNext"
             />
         </section>
@@ -97,12 +96,15 @@
 <script>
 import { ref, onMounted, computed } from "vue";
 import Button from "../components/Button.vue";
+import GenerateEmail from "../windows/generate-email/GenerateEmail.vue";
 
 export default {
     components: {
         Button,
+        GenerateEmail,
     },
-    setup() {
+    emits: ["navigate", "generate"],
+    setup(_, { emit }) {
         const templates = ref([]);
         const sections = ref([]);
         const selectedTemplates = ref([]);
@@ -125,6 +127,19 @@ export default {
             // console.log(templates.value);
         });
 
+        const proceedToGenerateEmail = () => {
+            const selected = templates.value.filter((t) =>
+                selectedTemplates.value.includes(t.id)
+            );
+
+            if (greetingTemplate.value)
+                selected.unshift(greetingTemplate.value);
+            if (signOffTemplate.value) selected.push(signOffTemplate.value);
+
+            emit("generate", selected);
+            emit("navigate", "emailEditor");
+        };
+
         const sectionTemplates = computed(() => {
             const grouped = {};
             for (const template of templates.value) {
@@ -133,7 +148,6 @@ export default {
                 if (!grouped[key]) grouped[key] = [];
                 grouped[key].push(template);
             }
-            // console.log("HERE", sectionTemplates.value);
             return grouped;
         });
 
@@ -171,26 +185,6 @@ export default {
             return selectedTemplates.value.length == 0;
         });
 
-        const openOrFocusGenerateEmailWindow = () => {
-            const selected = templates.value.filter((t) =>
-                selectedTemplates.value.includes(t.id)
-            );
-
-            if (greetingTemplate.value)
-                selected.unshift(greetingTemplate.value);
-            if (signOffTemplate.value) selected.push(signOffTemplate.value);
-
-            chrome.runtime.sendMessage(
-                {
-                    type: "open-or-focus-generate-email",
-                    payload: selected,
-                },
-                (response) => {
-                    console.log("Response:", response);
-                }
-            );
-        };
-
         return {
             templates,
             sections,
@@ -198,11 +192,11 @@ export default {
             disableNext,
             populatedSections,
             sectionTemplates,
-            openOrFocusGenerateEmailWindow,
             greetingTemplate,
             signOffTemplate,
             hasCoreTemplates,
             hasSalutations,
+            proceedToGenerateEmail,
         };
     },
 };
