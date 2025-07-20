@@ -179,7 +179,10 @@ export default {
 
         const closeGenerateEmail = () => {
             console.log("CLOSE CREATE TEMPLATE WINDOW");
-            window.close();
+            // window.close();
+            if (window.location.href.includes("generate-email.html")) {
+                window.close();
+            }
         };
 
         const launchPlaintextEmail = () => {

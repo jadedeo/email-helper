@@ -129,7 +129,7 @@ import Underline from "@tiptap/extension-underline";
 import ListItem from "@tiptap/extension-list-item";
 import { watch, onBeforeUnmount } from "vue";
 import Button from "../components/Button.vue";
-import CustomInput from "../lib/Extension";
+import CustomInput from "../lib/CustomInputExtension";
 import { createApp } from "vue";
 
 import BoldFormatIcon from "vue-material-design-icons/FormatBold.vue";
@@ -138,7 +138,7 @@ import UnderlineFormatIcon from "vue-material-design-icons/FormatUnderline.vue";
 import TextIcon from "vue-material-design-icons/Text.vue";
 import LinkVariantIcon from "vue-material-design-icons/LinkVariant.vue";
 
-const tiptapNodeViewApp = createApp({});
+// const tiptapNodeViewApp = createApp({});
 
 export default {
     components: {

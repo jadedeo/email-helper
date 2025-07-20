@@ -114,6 +114,15 @@ export default {
             window.removeEventListener("beforeunload", clearTemplateToEdit);
         });
 
+        const closeIfNotPopup = () => {
+            setTimeout(() => {
+                const popupViews = chrome.runtime.getViews({ type: "popup" });
+                if (popupViews.length === 0) {
+                    window.close();
+                }
+            }, 0);
+        };
+
         const clearTemplateToEdit = () => {
             chrome.storage.session.remove("templateToEdit");
         };
@@ -149,7 +158,7 @@ export default {
                 chrome.storage.local.set(
                     { templates: updatedTemplates },
                     () => {
-                        window.close();
+                        closeIfNotPopup();
                     }
                 );
             });
@@ -187,7 +196,7 @@ export default {
                 const existing = result.templates || [];
                 existing.push(newTemplate);
                 chrome.storage.local.set({ templates: existing }, () => {
-                    window.close();
+                    closeIfNotPopup();
                 });
             });
         };
@@ -200,7 +209,9 @@ export default {
         });
 
         const closeCreateTemplate = () => {
-            window.close();
+            if (window.location.href.includes("create-template.html")) {
+                window.close();
+            }
         };
 
         const handleDeleteTemplate = () => {
@@ -228,7 +239,7 @@ export default {
                                 chrome.storage.session.remove(
                                     "templateToEdit",
                                     () => {
-                                        window.close();
+                                        closeIfNotPopup();
                                     }
                                 );
                             }
@@ -251,6 +262,7 @@ export default {
             closeCreateTemplate,
             createTemplate,
             showInfoBox,
+            closeIfNotPopup,
         };
     },
 };

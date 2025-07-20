@@ -1,9 +1,9 @@
-// src/lib/Extension.js
+// src/lib/CustomInputExtension.js
 
 import { mergeAttributes, Node } from "@tiptap/core";
 import { VueNodeViewRenderer } from "@tiptap/vue-3";
 
-import Component from "../components/Component.vue";
+import CustomInput from "../components/CustomInput.vue";
 
 export default Node.create({
     name: "customInput",
@@ -35,6 +35,6 @@ export default Node.create({
     },
 
     addNodeView() {
-        return VueNodeViewRenderer(Component);
+        return VueNodeViewRenderer(CustomInput);
     },
 });
