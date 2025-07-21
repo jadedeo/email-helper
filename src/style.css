@@ -31,7 +31,7 @@
 }
 
 #app {
-    @apply min-w-[400px] min-h-fit mx-0  flex flex-col gap-8 w-[800px] h-[600px];
+    @apply min-w-[400px] min-h-fit mx-0  flex flex-col gap-8 w-[785px] h-[585px];
 }
 
 input[type="text"] {

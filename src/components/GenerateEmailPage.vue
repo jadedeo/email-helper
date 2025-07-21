@@ -30,15 +30,11 @@
 
         <section
             v-if="
-                templates.filter(
-                    (template) => template.section !== 'Salutations'
-                ).length > 0 &&
-                hasCoreTemplates &&
-                hasSalutations
+                populatedSections.length && hasCoreTemplates && hasSalutations
             "
-            class="px-6"
             v-for="(section, index) in populatedSections"
             :key="section"
+            class="px-6"
         >
             <h3 class="font-semibold mb-2">
                 {{ section }}
@@ -88,6 +84,7 @@
                 variant="outlined"
                 @button-click="proceedToGenerateEmail"
                 :disabled="disableNext"
+                class="!w-fit"
             />
         </section>
     </div>
@@ -111,20 +108,26 @@ export default {
 
         onMounted(() => {
             chrome.storage.local.get(["templates", "sections"], (result) => {
+                console.log("GENERATE EMAIL PAGE:");
+                console.log("TEMPLATES:", result.templates);
+                console.log("SECTIONS:", result.sections);
+
                 if (Array.isArray(result.templates)) {
                     templates.value = result.templates;
                 }
                 if (Array.isArray(result.sections)) {
-                    sections.value = result.sections;
+                    sections.value = [...result.sections];
                 } else if (result.sections !== undefined) {
                     // console.warn(
                     //     "⚠️ Invalid sections format:",
                     //     result.sections
                     // );
                 }
+                console.log("AGAIN:");
+
+                console.log("TEMPLATES:", templates.value);
+                console.log("SECTIONS:", sections.value);
             });
-            // console.log(sections.value);
-            // console.log(templates.value);
         });
 
         const proceedToGenerateEmail = () => {
@@ -175,11 +178,14 @@ export default {
             return !!greetingTemplate.value && !!signOffTemplate.value;
         });
 
-        const populatedSections = computed(() =>
-            [...sections.value, "Uncategorized Templates"]
+        const populatedSections = computed(() => {
+            const baseSections = new Set(sections.value);
+            baseSections.add("Uncategorized Templates");
+
+            return [...baseSections]
                 .filter((s) => sectionTemplates.value[s]?.length)
-                .filter((s) => s !== "Salutations")
-        );
+                .filter((s) => s !== "Salutations");
+        });
 
         const disableNext = computed(() => {
             return selectedTemplates.value.length == 0;

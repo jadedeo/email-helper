@@ -1,4 +1,5 @@
 <!-- App.vue -->
+<!-- TODO: switch over all components to <script setup> -->
 <template>
     <section v-if="showTabs" class="px-6 mt-6">
         <div
@@ -24,14 +25,17 @@
 
     <component
         :is="currentComponent"
+        :key="componentKey"
         @navigate="currentView = $event"
         @generate="handleGenerate"
-    />
+        @edit-template="handleEditTemplate"
+        @close="() => (currentView = 'templates')"
+        @load-templates="() => (currentView = 'templates')"
+    ></component>
 </template>
 
 <script>
-// TODO: switch over all components to <script setup>
-import { h, ref, computed } from "vue";
+import { h, ref, computed, watch } from "vue";
 import GenerateEmailPage from "./components/GenerateEmailPage.vue";
 import TemplatesPage from "./components/TemplatesPage.vue";
 import CreateTemplate from "./windows/create-template/CreateTemplate.vue";
@@ -53,14 +57,39 @@ export default {
     setup() {
         const currentView = ref("home");
         const selectedTemplates = ref([]);
+        const templateToEdit = ref(null);
+
+        const componentKey = ref(0);
+
+        watch(currentView, (newVal) => {
+            if (newVal === "templates") {
+                // give time for onClose to finish storage update
+                setTimeout(() => {
+                    componentKey.value += 1;
+                }, 100);
+            } else {
+                componentKey.value += 1;
+            }
+        });
 
         const handleGenerate = (templates) => {
             selectedTemplates.value = templates;
         };
 
+        const handleEditTemplate = (template) => {
+            templateToEdit.value = template;
+            currentView.value = "templateEditor";
+        };
+
         const viewMap = {
             home: GenerateEmailPage,
-            templates: TemplatesPage,
+            templates: {
+                render() {
+                    return h(TemplatesPage, {
+                        currentView: currentView.value,
+                    });
+                },
+            },
             emailEditor: {
                 render() {
                     return h(GenerateEmail, {
@@ -68,7 +97,24 @@ export default {
                     });
                 },
             },
-            templateEditor: CreateTemplate,
+            templateEditor: {
+                render() {
+                    return h(CreateTemplate, {
+                        templateToEdit: templateToEdit.value,
+                        onClose: () => {
+                            // force chrome.storage.set to complete before navigating
+                            chrome.storage.local.get("templates", (result) => {
+                                console.log(
+                                    "latest templates",
+                                    result.templates
+                                ); // optional
+                                currentView.value = "templates";
+                                templateToEdit.value = null;
+                            });
+                        },
+                    });
+                },
+            },
         };
 
         const currentComponent = computed(() => viewMap[currentView.value]);
@@ -88,9 +134,14 @@ export default {
             displayPage,
             showTabs,
             handleGenerate,
+            handleEditTemplate,
+            templateToEdit,
+            componentKey,
         };
     },
 };
 </script>
 
 <style scoped></style>
+
+<!-- Button-CqOcMjlG.js:14  TypeError: Cannot create property 'value' on string 'templateEditor' -->

@@ -37,12 +37,13 @@
                 variant="link"
                 class="!text-red-600"
             />
+            <!--   @button-click="closeCreateTemplate" -->
             <div class="flex justify-end gap-2 w-fill">
                 <Button
-                    @button-click="closeCreateTemplate"
                     label="Cancel"
                     variant="outlined"
                     class="!w-fit !px-10"
+                    @button-click="$emit('close')"
                 />
                 <Button
                     v-if="!isEditingTemplate"
@@ -78,7 +79,14 @@ export default {
         DeleteIcon,
         InfoBox,
     },
-    setup() {
+    emits: ["close"],
+    props: {
+        templateToEdit: {
+            type: Object,
+            default: null,
+        },
+    },
+    setup(props, { emit }) {
         // TODO: deal with what should happen when the user tries to open more than one of these windows
 
         const templateTitle = ref("");
@@ -89,40 +97,53 @@ export default {
         const showInfoBox = ref(true);
 
         onMounted(() => {
-            chrome.storage.session.get(["templateToEdit"], (result) => {
-                if (result.templateToEdit) {
-                    originalTemplate.value = result.templateToEdit;
-
-                    templateTitle.value = result.templateToEdit.title || "";
-                    templateBody.value = result.templateToEdit.body || "";
-                    section.value =
-                        result.templateToEdit.section ||
-                        "Uncategorized Templates";
-                    if (
-                        result.templateToEdit.title &&
-                        result.templateToEdit.body
-                    ) {
-                        isEditingTemplate.value = true;
-                    }
-                }
-            });
-
-            window.addEventListener("beforeunload", clearTemplateToEdit);
+            if (props.templateToEdit) {
+                originalTemplate.value = props.templateToEdit;
+                templateTitle.value = props.templateToEdit.title || "";
+                templateBody.value = props.templateToEdit.body || "";
+                section.value =
+                    props.templateToEdit.section || "Uncategorized Templates";
+                isEditingTemplate.value = !!(
+                    props.templateToEdit.title && props.templateToEdit.body
+                );
+            }
         });
 
-        onUnmounted(() => {
-            window.removeEventListener("beforeunload", clearTemplateToEdit);
-        });
+        // onMounted(() => {
+        //     chrome.storage.session.get(["templateToEdit"], (result) => {
+        //         if (result.templateToEdit) {
+        //             originalTemplate.value = result.templateToEdit;
+
+        //             templateTitle.value = result.templateToEdit.title || "";
+        //             templateBody.value = result.templateToEdit.body || "";
+        //             section.value =
+        //                 result.templateToEdit.section ||
+        //                 "Uncategorized Templates";
+        //             if (
+        //                 result.templateToEdit.title &&
+        //                 result.templateToEdit.body
+        //             ) {
+        //                 isEditingTemplate.value = true;
+        //             }
+        //         }
+        //     });
+
+        //     window.addEventListener("beforeunload", clearTemplateToEdit);
+        // });
+
+        // onUnmounted(() => {
+        //     window.removeEventListener("beforeunload", clearTemplateToEdit);
+        // });
 
         // TODO: remove if not helping
-        const closeIfNotPopup = () => {
-            setTimeout(() => {
-                const popupViews = chrome.runtime.getViews({ type: "popup" });
-                if (popupViews.length === 0) {
-                    window.close();
-                }
-            }, 0);
-        };
+        // const closeIfNotPopup = () => {
+        //     setTimeout(() => {
+        //         const popupViews = chrome.runtime.getViews({ type: "popup" });
+        //         if (popupViews.length === 0) {
+        //             window.close();
+        //         }
+        //     }, 0);
+        // };
 
         const clearTemplateToEdit = () => {
             chrome.storage.session.remove("templateToEdit");
@@ -146,7 +167,6 @@ export default {
                 title: templateTitle.value.trim(),
                 body: templateBody.value.trim(),
                 section: section.value,
-                // section: originalTemplate.value.section,
             };
 
             chrome.storage.local.get(["templates"], (result) => {
@@ -159,10 +179,12 @@ export default {
                 chrome.storage.local.set(
                     { templates: updatedTemplates },
                     () => {
-                        closeIfNotPopup();
+                        // closeIfNotPopup();
                     }
                 );
             });
+
+            emit("load-templates");
         };
 
         const disableSaveTemplate = computed(() => {
@@ -197,9 +219,12 @@ export default {
                 const existing = result.templates || [];
                 existing.push(newTemplate);
                 chrome.storage.local.set({ templates: existing }, () => {
-                    closeIfNotPopup();
+                    // closeIfNotPopup();
                 });
             });
+
+            emit("load-templates");
+            emit("close");
         };
 
         const disableCreateTemplate = computed(function () {
@@ -209,45 +234,30 @@ export default {
             );
         });
 
-        const closeCreateTemplate = () => {
-            if (window.location.href.includes("create-template.html")) {
-                window.close();
-            }
-        };
-
         const handleDeleteTemplate = () => {
-            console.log("handleDeleteTemplate");
+            if (!props.templateToEdit?.id) {
+                console.error("No template to delete.");
+                return;
+            }
 
-            chrome.storage.session.get(["templateToEdit"], (result) => {
-                if (result.templateToEdit) {
-                    const templateToDelete = result.templateToEdit?.id;
-                    if (!templateToDelete) {
-                        console.error("templateToDelete not found");
-                        return;
+            const templateToDelete = props.templateToEdit.id;
+
+            chrome.storage.local.get(["templates"], (result) => {
+                const existingTemplates = result.templates || [];
+
+                const updatedTemplates = existingTemplates.filter(
+                    (template) => template.id !== templateToDelete
+                );
+
+                chrome.storage.local.set(
+                    { templates: updatedTemplates },
+                    () => {
+                        console.log("Template deleted.");
                     }
-                    console.log("delete this template:", templateToDelete);
-
-                    chrome.storage.local.get(["templates"], (result) => {
-                        const existingTemplates = result.templates || [];
-
-                        const updatedTemplates = existingTemplates.filter(
-                            (template) => template.id !== templateToDelete
-                        );
-
-                        chrome.storage.local.set(
-                            { templates: updatedTemplates },
-                            () => {
-                                chrome.storage.session.remove(
-                                    "templateToEdit",
-                                    () => {
-                                        closeIfNotPopup();
-                                    }
-                                );
-                            }
-                        );
-                    });
-                }
+                );
             });
+            emit("load-templates");
+            emit("close");
         };
 
         return {
@@ -260,10 +270,10 @@ export default {
             disableCreateTemplate,
             saveTemplate,
             disableSaveTemplate,
-            closeCreateTemplate,
+            // closeCreateTemplate,
             createTemplate,
             showInfoBox,
-            closeIfNotPopup,
+            // closeIfNotPopup,
         };
     },
 };

@@ -2,11 +2,11 @@
 <template>
     <div class="flex flex-col gap-5 mb-6">
         <section class="flex flex-col gap-2 px-6">
-            <Button
+            <!-- <Button
                 @button-click="handleExportTemplates"
                 label="Export all templates"
             />
-            <input type="file" ref="file" @change="handleImportTemplates" />
+            <input type="file" ref="file" @change="handleImportTemplates" /> -->
 
             <h2>Salutation</h2>
             <InfoBox
@@ -135,13 +135,7 @@
         <section v-else>
             <!-- HAS TEMPLATES -->
             <!-- <div> -->
-            <div
-                v-for="sectionName in [
-                    ...sections.filter((s) => s !== 'Salutations'),
-                    'Uncategorized Templates',
-                ]"
-                :key="sectionName"
-            >
+            <div v-for="sectionName in orderedSections" :key="sectionName">
                 <div class="px-6 flex flex-col gap-2">
                     <h3>
                         {{ sectionName }}
@@ -248,7 +242,7 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { saveAs } from "file-saver";
 
 import CloudUploadIcon from "vue-material-design-icons/CloudUploadOutline.vue";
@@ -272,7 +266,18 @@ export default {
         PencilOutlineIcon,
     },
 
-    setup() {
+    props: {
+        templateToEdit: {
+            type: Object,
+            default: null,
+        },
+        currentView: {
+            type: String,
+            default: null,
+        },
+    },
+    emits: ["edit-template"],
+    setup(props, { emit }) {
         const templates = ref([]);
         const sections = ref([]);
         const newSection = ref("");
@@ -281,26 +286,35 @@ export default {
         let file = ref(null);
 
         onMounted(() => {
+            loadTemplates();
+        });
+
+        watch(
+            () => props.currentView,
+            (newVal) => {
+                if (newVal === "templates") loadTemplates();
+            }
+        );
+
+        const loadTemplates = () => {
             chrome.storage.local.get(["templates", "sections"], (result) => {
-                if (Array.isArray(result.templates)) {
-                    templates.value = result.templates;
-                }
+                templates.value = Array.isArray(result.templates)
+                    ? result.templates
+                    : [];
 
                 if (Array.isArray(result.sections)) {
                     sections.value = result.sections;
                 } else {
-                    sections.value = [];
-                }
-
-                if (!sections.value.includes("Salutations")) {
-                    sections.value.push("Salutations");
-
-                    chrome.storage.local.set({ sections: sections.value });
-                } else {
-                    console.log("sections", sections.value);
+                    const sectionNames = new Set(
+                        templates.value.map(
+                            (t) =>
+                                t.section?.trim() || "Uncategorized Templates"
+                        )
+                    );
+                    sections.value = [...sectionNames];
                 }
             });
-        });
+        };
 
         const onDragChange = (event, newSectionName) => {
             const { added, moved } = event;
@@ -347,40 +361,45 @@ export default {
 
         const sectionTemplates = computed(() => {
             const grouped = {};
-            for (const template of templates.value) {
-                const key = template.section;
 
+            for (const section of sections.value) {
+                grouped[section] = [];
+            }
+
+            for (const template of templates.value) {
+                const key =
+                    template.section?.trim() || "Uncategorized Templates";
                 if (!grouped[key]) grouped[key] = [];
                 grouped[key].push(template);
             }
+
             return grouped;
+        });
+
+        const orderedSections = computed(() => {
+            return sections.value
+                .filter(
+                    (s) =>
+                        s !== "Salutations" && s !== "Uncategorized Templates"
+                )
+                .concat(
+                    sections.value.includes("Uncategorized Templates")
+                        ? ["Uncategorized Templates"]
+                        : []
+                );
         });
 
         const openOrFocusCreateTemplateWindow = (
             template = null,
             section = null
         ) => {
-            chrome.runtime.sendMessage(
-                {
-                    type: "open-or-focus-create-template",
-                    payload: template
-                        ? {
-                              id: template.id,
-                              title: template.title,
-                              body: template.body,
-                              section: template.section,
-                          }
-                        : {
-                              id: null,
-                              title: "",
-                              body: "",
-                              section: section || "",
-                          },
-                },
-                (response) => {
-                    console.log("Response:", response);
-                }
-            );
+            emit("edit-template", {
+                id: template?.id || null,
+                title: template?.title || "",
+                body: template?.body || "",
+                section:
+                    template?.section || section || "Uncategorized Templates",
+            });
         };
 
         const uploadTemplates = () => {
@@ -431,8 +450,9 @@ export default {
                 return;
             }
 
-            sections.value.push(cleanName);
-            chrome.storage.local.set({ sections: [...sections.value] });
+            const updatedSections = [...sections.value, cleanName];
+            sections.value = updatedSections;
+            chrome.storage.local.set({ sections: updatedSections });
 
             newSection.value = "";
             displaySectionField.value = false;
@@ -472,31 +492,20 @@ export default {
         };
 
         const handleImportTemplates = () => {
-            // console.log("retrieved JSON:");
-            // console.log(templatesJSON);
-
-            // let newArray = JSON.parse(templatesJSON);
-            // console.log("transformed to array:");
-            // console.log(newArray);
+            const selectedFile = file.value?.files?.[0];
+            if (!selectedFile) return;
 
             const reader = new FileReader();
 
             try {
-                file.value = file.value.files[0];
-                reader.readAsText(file.value);
+                reader.readAsText(selectedFile);
 
                 reader.onload = (res) => {
-                    // console.log("FILE CONTENTS:");
-                    // console.log(res.target.result);
-
                     const parsed = JSON.parse(res.target.result);
                     const importedTemplates = Array.isArray(parsed)
                         ? parsed
                         : [];
 
-                    console.log(importedTemplates);
-
-                    //replace ids of imported templates (just in case there are duplicates)
                     const templatesWithNewIds = importedTemplates.map(
                         (template) => ({
                             ...template,
@@ -504,11 +513,9 @@ export default {
                         })
                     );
 
-                    // add imports to templates array in chrome.storage.local
                     chrome.storage.local.get(["templates"], (result) => {
                         const existingTemplates = result.templates || [];
 
-                        // remove old salutations
                         const filteredTemplates = existingTemplates.filter(
                             (t) =>
                                 !(
@@ -518,7 +525,6 @@ export default {
                                 )
                         );
 
-                        // ...
                         const mergedTemplates = [
                             ...filteredTemplates,
                             ...templatesWithNewIds,
@@ -531,6 +537,18 @@ export default {
                                 templates.value = mergedTemplates;
                             }
                         );
+
+                        const newSections = new Set(
+                            mergedTemplates.map(
+                                (t) =>
+                                    t.section?.trim() ||
+                                    "Uncategorized Templates"
+                            )
+                        );
+
+                        const sectionsArray = [...newSections];
+                        sections.value = sectionsArray;
+                        chrome.storage.local.set({ sections: sectionsArray });
                     });
                 };
             } catch (error) {
@@ -558,6 +576,7 @@ export default {
             handleImportTemplates,
             templatesJSON,
             file,
+            orderedSections,
         };
     },
 };

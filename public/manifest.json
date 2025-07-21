@@ -12,9 +12,5 @@
             "resources": ["create-template.html", "generate-email.html"],
             "matches": ["<all_urls>"]
         }
-    ],
-    "background": {
-        "service_worker": "background.js",
-        "type": "module"
-    }
+    ]
 }
