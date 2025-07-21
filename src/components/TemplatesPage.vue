@@ -1,65 +1,20 @@
 <!-- src/components/TemplatePage.vue -->
 <template>
-    <div class="flex flex-col gap-5 mb-6">
-        <section class="flex flex-col gap-2 px-6">
-            <!-- <Button
+    <div class="flex justify-center bg-white">
+        <div class="flex flex-col gap-5 mb-6 max-w-[550px] bg-white">
+            <section class="flex flex-col gap-2 px-6">
+                <!-- <Button
                 @button-click="handleExportTemplates"
                 label="Export all templates"
             />
             <input type="file" ref="file" @change="handleImportTemplates" /> -->
 
-            <h2>Salutation</h2>
-            <InfoBox
-                heading="Salutations are automatically applied"
-                body="Greetings and sign-off salutations are applied to all email
+                <h2>Salutation</h2>
+                <InfoBox
+                    heading="Salutations are automatically applied"
+                    body="Greetings and sign-off salutations are applied to all email
                     responses, regardless of which template is used."
-            />
-
-            <div
-                :class="
-                    !greetingTemplate && !signOffTemplate ? 'flex gap-3' : ''
-                "
-            >
-                <div>
-                    <!-- TODO: make this into a component, substitute in draggable area too -->
-                    <div
-                        v-if="greetingTemplate"
-                        class="flex justify-between items-center py-2"
-                    >
-                        <div class="flex gap-1 items-center font-semibold">
-                            Greeting
-                        </div>
-                        <PencilOutlineIcon
-                            :size="20"
-                            @click="
-                                () =>
-                                    openOrFocusCreateTemplateWindow(
-                                        greetingTemplate
-                                    )
-                            "
-                            class="cursor-pointer"
-                        />
-                    </div>
-                    <hr v-if="greetingTemplate && signOffTemplate" />
-                    <div
-                        v-if="signOffTemplate"
-                        class="flex justify-between items-center py-2"
-                    >
-                        <div class="flex gap-1 items-center font-semibold">
-                            Sign-off
-                        </div>
-                        <PencilOutlineIcon
-                            :size="20"
-                            @click="
-                                () =>
-                                    openOrFocusCreateTemplateWindow(
-                                        signOffTemplate
-                                    )
-                            "
-                            class="cursor-pointer"
-                        />
-                    </div>
-                </div>
+                />
 
                 <div
                     :class="
@@ -68,176 +23,227 @@
                             : ''
                     "
                 >
-                    <Button
-                        v-if="!greetingTemplate"
-                        @button-click="() => addSalutation('greeting')"
-                        variant="link"
-                        label="Add greeting"
-                    />
-                    <Button
-                        v-if="!signOffTemplate"
-                        @button-click="() => addSalutation('sign-off')"
-                        variant="link"
-                        label="Add sign-off"
-                    />
-                </div>
-            </div>
-        </section>
-        <hr />
-
-        <!-- TODO: conditionally render sections -->
-        <section
-            v-if="
-                templates.filter(
-                    (template) => template.section !== 'Salutations'
-                ).length == 0
-            "
-            class="px-6"
-        >
-            <!-- NO TEMPLATES YET -->
-            <div class="flex flex-col gap-5">
-                <div
-                    class="w-fit border-solid border-1 border-lime-100 mx-auto rounded-full p-5"
-                >
-                    <div
-                        class="w-fit border-solid border-1 border-lime-200 mx-auto rounded-full p-3"
-                    >
+                    <div>
+                        <!-- TODO: make this into a component, substitute in draggable area too -->
                         <div
-                            class="bg-lime-100 w-fit text-lime-700 mx-auto rounded-full p-10"
+                            v-if="greetingTemplate"
+                            class="flex justify-between items-center py-2"
                         >
-                            <TextBoxMultipleIcon :size="50" />
+                            <div class="flex gap-1 items-center font-semibold">
+                                Greeting
+                            </div>
+                            <PencilOutlineIcon
+                                :size="20"
+                                @click="
+                                    () =>
+                                        openOrFocusCreateTemplateWindow(
+                                            greetingTemplate
+                                        )
+                                "
+                                class="cursor-pointer"
+                            />
+                        </div>
+                        <hr v-if="greetingTemplate && signOffTemplate" />
+                        <div
+                            v-if="signOffTemplate"
+                            class="flex justify-between items-center py-2"
+                        >
+                            <div class="flex gap-1 items-center font-semibold">
+                                Sign-off
+                            </div>
+                            <PencilOutlineIcon
+                                :size="20"
+                                @click="
+                                    () =>
+                                        openOrFocusCreateTemplateWindow(
+                                            signOffTemplate
+                                        )
+                                "
+                                class="cursor-pointer"
+                            />
                         </div>
                     </div>
-                </div>
-                <div class="text-center">
-                    <h3>You don't have any templates yet!</h3>
-                    <p>Upload template files or create a new document.</p>
-                </div>
-                <div class="flex gap-3">
-                    <!-- TODO: add file upload option -->
-                    <Button
-                        @button-click="uploadTemplates"
-                        variant="outlined"
-                        label="Upload templates"
-                        disabled="true"
-                        ><CloudUploadIcon :size="20"
-                    /></Button>
-                    <Button
-                        @button-click="() => openOrFocusCreateTemplateWindow()"
-                        label="Create template"
+
+                    <div
+                        :class="
+                            !greetingTemplate && !signOffTemplate
+                                ? 'flex gap-3'
+                                : ''
+                        "
                     >
-                        <PlusIcon :size="20" />
-                    </Button>
-                </div>
-            </div>
-        </section>
-
-        <section v-else>
-            <!-- HAS TEMPLATES -->
-            <!-- <div> -->
-            <div v-for="sectionName in orderedSections" :key="sectionName">
-                <div class="px-6 flex flex-col gap-2">
-                    <h3>
-                        {{ sectionName }}
-                    </h3>
-                    <InfoBox
-                        v-if="sectionName === 'Uncategorized Templates'"
-                        heading="These templates do not have a section"
-                        body="You may want to add them to an existing section or create a new one."
-                    />
-
-                    <draggable
-                        :list="sectionTemplates[sectionName] || []"
-                        group="templates"
-                        itemKey="id"
-                        @change="(e) => onDragChange(e, sectionName)"
-                    >
-                        <template #item="{ element, index: templateIndex }">
-                            <div>
-                                <div
-                                    class="flex justify-between items-center cursor-grab py-2"
-                                >
-                                    <div
-                                        class="flex gap-1 items-center font-semibold"
-                                    >
-                                        <DragVerticalIcon :size="18" />
-                                        {{ element.title }}
-                                    </div>
-                                    <PencilOutlineIcon
-                                        :size="20"
-                                        @click="
-                                            () =>
-                                                openOrFocusCreateTemplateWindow(
-                                                    element
-                                                )
-                                        "
-                                    />
-                                </div>
-
-                                <hr
-                                    v-if="
-                                        templateIndex <
-                                        (sectionTemplates[sectionName]
-                                            ?.length || 0) -
-                                            1
-                                    "
-                                />
-                            </div>
-                        </template>
-                    </draggable>
-
-                    <div class="w-full">
                         <Button
-                            @button-click="
-                                () =>
-                                    openOrFocusCreateTemplateWindow(
-                                        null,
-                                        sectionName
-                                    )
-                            "
-                            label="Add template"
+                            v-if="!greetingTemplate"
+                            @button-click="() => addSalutation('greeting')"
                             variant="link"
+                            label="Add greeting"
+                        />
+                        <Button
+                            v-if="!signOffTemplate"
+                            @button-click="() => addSalutation('sign-off')"
+                            variant="link"
+                            label="Add sign-off"
                         />
                     </div>
                 </div>
-                <hr class="my-5" />
-            </div>
-            <!-- </div> -->
-        </section>
+            </section>
+            <hr />
 
-        <!-- <hr /> -->
+            <!-- TODO: conditionally render sections -->
+            <section
+                v-if="
+                    templates.filter(
+                        (template) => template.section !== 'Salutations'
+                    ).length == 0
+                "
+                class="px-6"
+            >
+                <!-- NO TEMPLATES YET -->
+                <div class="flex flex-col gap-5">
+                    <div
+                        class="w-fit border-solid border-1 border-lime-100 mx-auto rounded-full p-5"
+                    >
+                        <div
+                            class="w-fit border-solid border-1 border-lime-200 mx-auto rounded-full p-3"
+                        >
+                            <div
+                                class="bg-lime-100 w-fit text-lime-700 mx-auto rounded-full p-10"
+                            >
+                                <TextBoxMultipleIcon :size="50" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <h3>You don't have any templates yet!</h3>
+                        <p>Upload template files or create a new document.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <!-- TODO: add file upload option -->
+                        <Button
+                            @button-click="uploadTemplates"
+                            variant="outlined"
+                            label="Upload templates"
+                            disabled="true"
+                            ><CloudUploadIcon :size="20"
+                        /></Button>
+                        <Button
+                            @button-click="
+                                () => openOrFocusCreateTemplateWindow()
+                            "
+                            label="Create template"
+                        >
+                            <PlusIcon :size="20" />
+                        </Button>
+                    </div>
+                </div>
+            </section>
 
-        <section class="px-6 flex flex-col gap-5">
-            <input
-                v-if="displaySectionField"
-                type="text"
-                v-model="newSection"
-                placeholder="New section name"
-                class="standard"
-            />
+            <section v-else>
+                <!-- HAS TEMPLATES -->
+                <!-- <div> -->
+                <div v-for="sectionName in orderedSections" :key="sectionName">
+                    <div class="px-6 flex flex-col gap-2">
+                        <h3>
+                            {{ sectionName }}
+                        </h3>
+                        <InfoBox
+                            v-if="sectionName === 'Uncategorized Templates'"
+                            heading="These templates do not have a section"
+                            body="You may want to add them to an existing section or create a new one."
+                        />
 
-            <div v-if="displaySectionField" class="flex gap-3">
+                        <draggable
+                            :list="sectionTemplates[sectionName] || []"
+                            group="templates"
+                            itemKey="id"
+                            @change="(e) => onDragChange(e, sectionName)"
+                        >
+                            <template #item="{ element, index: templateIndex }">
+                                <div>
+                                    <div
+                                        class="flex justify-between items-center cursor-grab py-2"
+                                    >
+                                        <div
+                                            class="flex gap-1 items-center font-semibold"
+                                        >
+                                            <DragVerticalIcon :size="18" />
+                                            {{ element.title }}
+                                        </div>
+                                        <PencilOutlineIcon
+                                            :size="20"
+                                            @click="
+                                                () =>
+                                                    openOrFocusCreateTemplateWindow(
+                                                        element
+                                                    )
+                                            "
+                                        />
+                                    </div>
+
+                                    <hr
+                                        v-if="
+                                            templateIndex <
+                                            (sectionTemplates[sectionName]
+                                                ?.length || 0) -
+                                                1
+                                        "
+                                    />
+                                </div>
+                            </template>
+                        </draggable>
+
+                        <div class="w-full">
+                            <Button
+                                @button-click="
+                                    () =>
+                                        openOrFocusCreateTemplateWindow(
+                                            null,
+                                            sectionName
+                                        )
+                                "
+                                label="Add template"
+                                variant="link"
+                            />
+                        </div>
+                    </div>
+                    <hr class="my-5" />
+                </div>
+                <!-- </div> -->
+            </section>
+
+            <!-- <hr /> -->
+
+            <section class="px-6 flex flex-col gap-5">
+                <input
+                    v-if="displaySectionField"
+                    type="text"
+                    v-model="newSection"
+                    placeholder="New section name"
+                    class="standard"
+                />
+
+                <div v-if="displaySectionField" class="flex gap-3">
+                    <Button
+                        label="Cancel"
+                        variant="outlined"
+                        @button-click="cancelAddSection"
+                    />
+                    <Button
+                        label="Create section"
+                        variant="filled"
+                        :disabled="disableCreateSection"
+                        @button-click="createSection"
+                    />
+                </div>
+
                 <Button
-                    label="Cancel"
+                    v-if="!displaySectionField"
+                    label="Add section"
                     variant="outlined"
-                    @button-click="cancelAddSection"
-                />
-                <Button
-                    label="Create section"
-                    variant="filled"
-                    :disabled="disableCreateSection"
-                    @button-click="createSection"
-                />
-            </div>
-
-            <Button
-                v-if="!displaySectionField"
-                label="Add section"
-                variant="outlined"
-                @button-click="addSection"
-                ><PlusIcon :size="20"
-            /></Button>
-        </section>
+                    @button-click="addSection"
+                    ><PlusIcon :size="20"
+                /></Button>
+            </section>
+        </div>
     </div>
 </template>
 

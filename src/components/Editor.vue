@@ -2,7 +2,7 @@
 
 <template>
     <div
-        class="editor-wrapper flex flex-col h-full bg-white rounded-md border-solid border-1 border-gray-200 overflow-clip"
+        class="editor-wrapper flex flex-col h-full bg-white rounded-md border-solid border-1 border-gray-200 overflow-auto"
     >
         <editor-content :editor="editor" class="flex-1 overflow-auto" />
         <div

@@ -1,7 +1,7 @@
 <template>
     <button
         :class="computedClass"
-        class="flex justify-center items-center gap-1"
+        class="flex justify-center items-center gap-1 min-w-fit"
         @click="$emit('button-click')"
         :disabled="disabled"
     >

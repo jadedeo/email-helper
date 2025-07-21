@@ -1,92 +1,105 @@
 <!-- src/components/GenerateEmailPage.vue -->
 
 <template>
-    <div class="flex flex-col gap-5 mb-6">
-        <section v-if="!hasCoreTemplates" class="flex flex-col gap-2 px-6">
-            <h2>You don't have any templates yet!</h2>
-            <p>
-                Navigate to the templates tab to fill out your first template.
-            </p>
-        </section>
+    <div class="flex justify-center bg-white">
+        <div class="flex flex-col gap-5 mb-6 max-w-[550px]">
+            <section v-if="!hasCoreTemplates" class="flex flex-col gap-2 px-6">
+                <h2>You don't have any templates yet!</h2>
+                <p>
+                    Navigate to the templates tab to fill out your first
+                    template.
+                </p>
+            </section>
 
-        <section
-            v-else-if="hasCoreTemplates && !hasSalutations"
-            class="flex flex-col gap-2 px-6"
-        >
-            <h2>You haven't finished your salutations!</h2>
-            <p>
-                Navigate to the templates tab to configure your default greeting
-                & sign-off.
-            </p>
-        </section>
-        <section v-else class="flex flex-col gap-2 px-6">
-            <h2>What's wrong?</h2>
-            <p>
-                Please select all aspects of this permit that restrict automatic
-                approval. These selections will be used to populate a template.
-            </p>
-        </section>
-        <hr v-if="hasCoreTemplates && hasSalutations" />
-
-        <section
-            v-if="
-                populatedSections.length && hasCoreTemplates && hasSalutations
-            "
-            v-for="(section, index) in populatedSections"
-            :key="section"
-            class="px-6"
-        >
-            <h3 class="font-semibold mb-2">
-                {{ section }}
-            </h3>
-            <ul
-                class="flex flex-col gap-2"
-                :class="index < populatedSections.length - 1 ? 'mb-4' : ''"
+            <section
+                v-else-if="hasCoreTemplates && !hasSalutations"
+                class="flex flex-col gap-2 px-6"
             >
-                <li
-                    v-for="template in sectionTemplates[section] || []"
-                    :key="template.id"
-                    class="flex items-center gap-2"
-                >
-                    <input
-                        type="checkbox"
-                        :id="template.id"
-                        :value="template.id"
-                        v-model="selectedTemplates"
-                    />
-                    <label :for="template.id">{{ template.title }}</label>
-                </li>
-            </ul>
+                <h2>You haven't finished your salutations!</h2>
+                <p>
+                    Navigate to the templates tab to configure your default
+                    greeting & sign-off.
+                </p>
+            </section>
+            <section v-else class="flex flex-col gap-2 px-6">
+                <h2>What's wrong?</h2>
+                <p>
+                    Please select all aspects of this permit that restrict
+                    automatic approval. These selections will be used to
+                    populate a template.
+                </p>
+            </section>
+            <hr v-if="hasCoreTemplates && hasSalutations" />
 
-            <hr
+            <section
                 v-if="
-                    index < populatedSections.length - 1 &&
+                    orderedSections.length && hasCoreTemplates && hasSalutations
+                "
+                v-for="(section, index) in orderedSections"
+                :key="section"
+                class="px-6"
+            >
+                <!-- <section
+                v-if="
+                    populatedSections.length &&
+                    hasCoreTemplates &&
+                    hasSalutations
+                "
+                v-for="(section, index) in populatedSections"
+                :key="section"
+                class="px-6"
+            > -->
+                <h3 class="font-semibold mb-2">
+                    {{ section }}
+                </h3>
+                <ul
+                    class="flex flex-col gap-2"
+                    :class="index < orderedSections.length - 1 ? 'mb-4' : ''"
+                >
+                    <li
+                        v-for="template in sectionTemplates[section] || []"
+                        :key="template.id"
+                        class="flex items-center gap-2"
+                    >
+                        <input
+                            type="checkbox"
+                            :id="template.id"
+                            :value="template.id"
+                            v-model="selectedTemplates"
+                        />
+                        <label :for="template.id">{{ template.title }}</label>
+                    </li>
+                </ul>
+
+                <hr
+                    v-if="
+                        index < populatedSections.length - 1 &&
+                        templates.filter(
+                            (template) => template.section !== 'Salutations'
+                        ).length > 0 &&
+                        hasCoreTemplates &&
+                        hasSalutations
+                    "
+                />
+            </section>
+            <section
+                v-if="
                     templates.filter(
                         (template) => template.section !== 'Salutations'
                     ).length > 0 &&
                     hasCoreTemplates &&
                     hasSalutations
                 "
-            />
-        </section>
-        <section
-            v-if="
-                templates.filter(
-                    (template) => template.section !== 'Salutations'
-                ).length > 0 &&
-                hasCoreTemplates &&
-                hasSalutations
-            "
-            class="px-6"
-        >
-            <Button
-                label="Next"
-                variant="outlined"
-                @button-click="proceedToGenerateEmail"
-                :disabled="disableNext"
-                class="!w-fit"
-            />
-        </section>
+                class="px-6"
+            >
+                <Button
+                    label="Next"
+                    variant="outlined"
+                    @button-click="proceedToGenerateEmail"
+                    :disabled="disableNext"
+                />
+            </section>
+        </div>
     </div>
 </template>
 
@@ -128,6 +141,16 @@ export default {
                 console.log("TEMPLATES:", templates.value);
                 console.log("SECTIONS:", sections.value);
             });
+        });
+
+        const orderedSections = computed(() => {
+            return populatedSections.value
+                .filter((s) => s !== "Uncategorized Templates")
+                .concat(
+                    populatedSections.value.includes("Uncategorized Templates")
+                        ? ["Uncategorized Templates"]
+                        : []
+                );
         });
 
         const proceedToGenerateEmail = () => {
@@ -203,6 +226,7 @@ export default {
             hasCoreTemplates,
             hasSalutations,
             proceedToGenerateEmail,
+            orderedSections,
         };
     },
 };

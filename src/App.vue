@@ -1,28 +1,33 @@
 <!-- App.vue -->
 <!-- TODO: switch over all components to <script setup> -->
 <template>
-    <section v-if="showTabs" class="px-6 mt-6">
-        <div
-            class="bg-gray-100 flex w-full rounded-md p-[1px] border-1 border-gray-100 border-solid"
-        >
-            <Button
-                @button-click="currentView = 'home'"
-                label="Generate Email"
-                :variant="currentView === 'home' ? 'activetab' : 'inactivetab'"
-                ><FlashIcon :size="18"
-            /></Button>
+    <div v-if="showTabs" class="flex justify-center">
+        <section v-if="showTabs" class="px-6 mt-6 w-full max-w-[550px]">
+            <div
+                class="bg-gray-100 flex w-full rounded-md p-[1px] border-1 border-gray-100 border-solid"
+            >
+                <Button
+                    @button-click="currentView = 'home'"
+                    label="Generate Email"
+                    :variant="
+                        currentView === 'home' ? 'activetab' : 'inactivetab'
+                    "
+                    ><FlashIcon :size="18"
+                /></Button>
 
-            <Button
-                @button-click="currentView = 'templates'"
-                label="Templates"
-                :variant="
-                    currentView === 'templates' ? 'activetab' : 'inactivetab'
-                "
-                ><TextBoxMultipleIcon :size="18"
-            /></Button>
-        </div>
-    </section>
-
+                <Button
+                    @button-click="currentView = 'templates'"
+                    label="Templates"
+                    :variant="
+                        currentView === 'templates'
+                            ? 'activetab'
+                            : 'inactivetab'
+                    "
+                    ><TextBoxMultipleIcon :size="18"
+                /></Button>
+            </div>
+        </section>
+    </div>
     <component
         :is="currentComponent"
         :key="componentKey"

@@ -70,7 +70,10 @@
 
                     <hr />
                     <!-- TODO: make preview editable -->
-                    <div v-html="filledHTML" class="overflow-auto"></div>
+                    <div
+                        v-html="filledHTML"
+                        class="overflow-y-auto break-all wrap-break-word"
+                    ></div>
                 </section>
             </div>
         </div>
@@ -279,10 +282,8 @@ export default {
             const allInputsFilled = Object.values(inputValues.value).every(
                 (val) => val.trim() !== ""
             );
-            // TODO: run by jyaleen - don't think it makes sense anymore for subject to be required
-            // const subjectFilled = subject.value.trim() !== "";
 
-            return !allInputsFilled /*|| !subjectFilled*/;
+            return !allInputsFilled;
         });
 
         return {
