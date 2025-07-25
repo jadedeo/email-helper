@@ -10,73 +10,74 @@
                     body="Greetings and sign-off salutations are applied to all email
                     responses, regardless of which template is used."
                 />
-
-                <div
-                    :class="
-                        !greetingTemplate && !signOffTemplate
-                            ? 'flex gap-3'
-                            : ''
-                    "
-                >
-                    <div>
-                        <!-- TODO: make this into a component, substitute in draggable area too -->
-                        <div
-                            v-if="greetingTemplate"
-                            class="flex justify-between items-center py-2"
-                        >
-                            <div class="flex gap-1 items-center font-semibold">
-                                Greeting
-                            </div>
-                            <PencilOutlineIcon
-                                :size="20"
-                                @click="
-                                    () =>
-                                        openOrFocusCreateTemplateWindow(
-                                            greetingTemplate
-                                        )
-                                "
-                                class="cursor-pointer"
-                            />
-                        </div>
-                        <hr v-if="greetingTemplate && signOffTemplate" />
-                        <div
-                            v-if="signOffTemplate"
-                            class="flex justify-between items-center py-2"
-                        >
-                            <div class="flex gap-1 items-center font-semibold">
-                                Sign-off
-                            </div>
-                            <PencilOutlineIcon
-                                :size="20"
-                                @click="
-                                    () =>
-                                        openOrFocusCreateTemplateWindow(
-                                            signOffTemplate
-                                        )
-                                "
-                                class="cursor-pointer"
-                            />
-                        </div>
-                    </div>
-
-                    <div
-                        :class="
-                            !greetingTemplate && !signOffTemplate
-                                ? 'flex gap-3'
-                                : ''
-                        "
+                <!-- <div>
+                    <small
+                        >greetingTemplate:{{
+                            greetingTemplate ? "exists" : "doesn't"
+                        }}</small
                     >
+                    <small
+                        >signOffTemplate:{{
+                            signOffTemplate ? "exists" : "doesn't"
+                        }}</small
+                    >
+                </div> -->
+
+                <div>
+                    <div
+                        class="flex justify-between items-center cursor-grab py-2"
+                    >
+                        <div class="flex gap-1 items-center font-semibold">
+                            Greeting
+                        </div>
+                        <PencilOutlineIcon
+                            v-if="greetingTemplate"
+                            :size="20"
+                            @click="
+                                () => openTemplateEditorPage(greetingTemplate)
+                            "
+                        />
                         <Button
                             v-if="!greetingTemplate"
-                            @button-click="() => addSalutation('greeting')"
                             variant="link"
                             label="Add greeting"
+                            @button-click="
+                                () =>
+                                    openTemplateEditorPage({
+                                        title: 'Greeting',
+                                        body: '',
+                                        section: 'Salutations',
+                                    })
+                            "
+                        />
+                    </div>
+
+                    <hr />
+                    <div
+                        class="flex justify-between items-center cursor-grab py-2"
+                    >
+                        <div class="flex gap-1 items-center font-semibold">
+                            Sign-off
+                        </div>
+                        <PencilOutlineIcon
+                            v-if="signOffTemplate"
+                            :size="20"
+                            @click="
+                                () => openTemplateEditorPage(signOffTemplate)
+                            "
                         />
                         <Button
                             v-if="!signOffTemplate"
-                            @button-click="() => addSalutation('sign-off')"
                             variant="link"
                             label="Add sign-off"
+                            @button-click="
+                                () =>
+                                    openTemplateEditorPage({
+                                        title: 'Sign-off',
+                                        body: '',
+                                        section: 'Salutations',
+                                    })
+                            "
                         />
                     </div>
                 </div>
@@ -93,19 +94,19 @@
             >
                 <!-- NO TEMPLATES YET -->
                 <div class="flex flex-col gap-5 mt-5">
-                    <div
-                        class="w-fit border-solid border-1 border-lime-100 mx-auto rounded-full p-5"
+                    <!-- <div
+                        class="w-fit border-solid border-1 border-lime-100 mx-auto rounded-full p-6"
                     >
                         <div
-                            class="w-fit border-solid border-1 border-lime-200 mx-auto rounded-full p-3"
+                            class="w-fit border-solid border-1 border-lime-200 mx-auto rounded-full p-4"
                         >
                             <div
-                                class="bg-lime-100 w-fit text-lime-700 mx-auto rounded-full p-10"
+                                class="bg-lime-100 w-fit text-lime-700 mx-auto rounded-full p-6"
                             >
                                 <TextBoxMultipleIcon :size="50" />
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                     <div class="text-center">
                         <h3>You don't have any templates yet!</h3>
                         <p>Upload template files or create a new document.</p>
@@ -126,15 +127,13 @@
                             />
                         </Button>
                         <Button
-                            @button-click="
-                                () => openOrFocusCreateTemplateWindow()
-                            "
+                            @button-click="() => openTemplateEditorPage()"
                             label="Create template"
                         >
                             <PlusIcon :size="20" />
                         </Button>
                     </div>
-                    <hr />
+                    <!-- <hr /> -->
                 </div>
             </section>
 
@@ -185,7 +184,7 @@
                                             :size="20"
                                             @click="
                                                 () =>
-                                                    openOrFocusCreateTemplateWindow(
+                                                    openTemplateEditorPage(
                                                         element
                                                     )
                                             "
@@ -208,7 +207,7 @@
                             <Button
                                 @button-click="
                                     () =>
-                                        openOrFocusCreateTemplateWindow(
+                                        openTemplateEditorPage(
                                             null,
                                             sectionName
                                         )
@@ -245,13 +244,14 @@
                     />
                 </div>
 
-                <Button
+                <!-- TODO: only display if has at least one template -->
+                <!-- <Button
                     v-if="!displaySectionField"
                     label="Add section"
                     variant="outlined"
                     @button-click="addSection"
                     ><PlusIcon :size="20"
-                /></Button>
+                /></Button> -->
             </section>
         </div>
     </div>
@@ -332,7 +332,6 @@ export default {
         let templatesJSON = ref(null);
         let file = ref(null);
         const isModalOpen = ref(false);
-        // const file = (ref < HTMLInputElement) | (null > null);
 
         const modalActions = [
             {
@@ -384,6 +383,7 @@ export default {
                         )
                     );
                     sections.value = [...sectionNames];
+                    chrome.storage.local.set({ sections: sections.value });
                 }
             });
         };
@@ -461,38 +461,18 @@ export default {
                 );
         });
 
-        const openOrFocusCreateTemplateWindow = (
+        const openTemplateEditorPage = (
             template = null,
+            title = null,
             section = null
         ) => {
             emit("edit-template", {
                 id: template?.id || null,
-                title: template?.title || "",
+                title: template?.title || title || "",
                 body: template?.body || "",
                 section:
                     template?.section || section || "Uncategorized Templates",
             });
-        };
-
-        // TODO: URGENT UPDATE THIS
-        const addSalutation = (type) => {
-            console.log("add salutation");
-            const title = type === "greeting" ? "Greeting" : "Sign-off";
-
-            chrome.runtime.sendMessage(
-                {
-                    type: "open-or-focus-create-template",
-                    payload: {
-                        id: null,
-                        title,
-                        body: "",
-                        section: "Salutations",
-                    },
-                },
-                (response) => {
-                    console.log("Response:", response);
-                }
-            );
         };
 
         const addSection = () => {
@@ -722,8 +702,7 @@ export default {
             disableCreateSection,
             displaySectionField,
             cancelAddSection,
-            openOrFocusCreateTemplateWindow,
-            addSalutation,
+            openTemplateEditorPage,
             sectionTemplates,
             onDragChange,
             greetingTemplate,

@@ -49,7 +49,7 @@
                 <Button
                     v-if="isEditingTemplate"
                     @button-click="saveTemplate"
-                    :disabled="disableSaveTemplate"
+                    :disabled="!hasUnsavedChanges"
                     label="Save"
                     class="!w-fit !px-10"
                 />
@@ -174,20 +174,6 @@ export default {
             emit("load-templates");
         };
 
-        const disableSaveTemplate = computed(() => {
-            if (isEditingTemplate) {
-                if (!originalTemplate.value) return true;
-
-                const titleUnchanged =
-                    originalTemplate.value.title === templateTitle.value.trim();
-                const bodyUnchanged =
-                    originalTemplate.value.body === templateBody.value.trim();
-
-                return titleUnchanged && bodyUnchanged;
-            }
-            return true;
-        });
-
         const createTemplate = () => {
             if (typeof chrome === "undefined" || !chrome.storage) {
                 console.error("Chrome storage is not available.");
@@ -223,8 +209,19 @@ export default {
             isModalOpen.value = true;
         };
 
+        const hasUnsavedChanges = computed(() => {
+            if (!originalTemplate.value) return false;
+
+            const titleChanged =
+                originalTemplate.value.title !== templateTitle.value.trim();
+            const bodyChanged =
+                originalTemplate.value.body !== templateBody.value.trim();
+
+            return titleChanged || bodyChanged;
+        });
+
         const handleCancelEditing = () => {
-            if (disableSaveTemplate.value) {
+            if (!hasUnsavedChanges.value) {
                 emit("close");
             } else {
                 modalType.value = "exitWithoutSaving";
@@ -275,7 +272,6 @@ export default {
             handleDeleteTemplate,
             disableCreateTemplate,
             saveTemplate,
-            disableSaveTemplate,
             createTemplate,
             showInfoBox,
             isModalOpen,
@@ -283,6 +279,7 @@ export default {
             handleCancelEditing,
             modalType,
             handleDiscardChanges,
+            hasUnsavedChanges,
         };
     },
 };

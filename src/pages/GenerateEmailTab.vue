@@ -1,8 +1,14 @@
 <!-- src/pages/GenerateEmailTab.vue -->
 <template>
-    <div class="flex justify-center bg-white">
+    <div
+        class="flex justify-center bg-white min-h-[85%]"
+        :class="!hasCoreTemplates || !hasSalutations ? 'items-center' : ''"
+    >
         <div class="flex flex-col gap-5 mb-6 max-w-[550px]">
-            <section v-if="!hasCoreTemplates" class="flex flex-col gap-2 px-6">
+            <section
+                v-if="!hasCoreTemplates"
+                class="flex flex-col px-6 text-center"
+            >
                 <h2>You don't have any templates yet!</h2>
                 <p>
                     Navigate to the templates tab to fill out your first
@@ -12,7 +18,7 @@
 
             <section
                 v-else-if="hasCoreTemplates && !hasSalutations"
-                class="flex flex-col gap-2 px-6"
+                class="flex flex-col px-6 text-center"
             >
                 <h2>You haven't finished your salutations!</h2>
                 <p>
@@ -105,12 +111,10 @@
 <script>
 import { ref, onMounted, computed } from "vue";
 import Button from "../components/Button.vue";
-// import GenerateEmail from "./GenerateEmailPage.vue";
 
 export default {
     components: {
         Button,
-        // GenerateEmail,
     },
     emits: ["navigate", "generate"],
     setup(_, { emit }) {
