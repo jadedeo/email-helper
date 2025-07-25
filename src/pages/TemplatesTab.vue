@@ -111,11 +111,20 @@
                         <p>Upload template files or create a new document.</p>
                     </div>
                     <div class="flex gap-3">
-                        <input
-                            type="file"
-                            ref="file"
-                            @change="handleImportTemplates"
-                        />
+                        <Button
+                            class="file-upload-button"
+                            variant="outlined"
+                            label="Upload"
+                            @button-click="triggerFileInput"
+                        >
+                            <CloudUploadIcon :size="18" />
+                            <input
+                                type="file"
+                                ref="file"
+                                @change="handleImportTemplates"
+                                class="hidden-file-input"
+                            />
+                        </Button>
                         <Button
                             @button-click="
                                 () => openOrFocusCreateTemplateWindow()
@@ -323,6 +332,7 @@ export default {
         let templatesJSON = ref(null);
         let file = ref(null);
         const isModalOpen = ref(false);
+        // const file = (ref < HTMLInputElement) | (null > null);
 
         const modalActions = [
             {
@@ -342,6 +352,10 @@ export default {
                 variant: "filled",
             },
         ];
+
+        const triggerFileInput = () => {
+            file.value?.click();
+        };
 
         onMounted(() => {
             loadTemplates();
@@ -546,6 +560,7 @@ export default {
             );
         };
 
+        // TODO: add error checking for invalid formats/contents
         const handleImportTemplates = () => {
             const selectedFile = file.value?.files?.[0];
             if (!selectedFile) return;
@@ -728,6 +743,7 @@ export default {
             handleConfirmDeleteSectionWithTemplates,
             handleConfirmDeleteSection,
             focusedSection,
+            triggerFileInput,
         };
     },
 };

@@ -69,25 +69,22 @@ p:empty {
 
 input[type="file"] {
     color: transparent;
+    width: 3rem;
 }
 input[type="file"]::-webkit-file-upload-button {
     visibility: hidden;
 }
 input[type="file"]::before {
-    content: "Upload";
     display: inline-block;
     outline: none;
-    white-space: nowrap;
     -webkit-user-select: none;
-    cursor: pointer;
-    font-weight: 700;
-    width: 100%;
-    text-align: center;
-    border-radius: 6px;
-
-    @apply w-full px-2 py-2 rounded-md border border-lime-700 bg-lime-50 text-lime-700;
+    @apply text-lime-700;
 }
 
 input[type="file"]:active {
     outline: 0;
+}
+
+input.hidden-file-input {
+    display: none;
 }
