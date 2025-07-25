@@ -41,20 +41,20 @@
 
 <script>
 import { h, ref, computed, watch } from "vue";
-import GenerateEmailPage from "./components/GenerateEmailPage.vue";
-import TemplatesPage from "./components/TemplatesPage.vue";
-import CreateTemplate from "./windows/create-template/CreateTemplate.vue";
-import GenerateEmail from "./windows/generate-email/GenerateEmail.vue";
+import GenerateEmailTab from "./pages/GenerateEmailTab.vue";
+import TemplatesTab from "./pages/TemplatesTab.vue";
+import TemplateEditorPage from "./pages/TemplateEditorPage.vue";
+import GenerateEmailPage from "./pages/GenerateEmailPage.vue";
 import Button from "./components/Button.vue";
 import FlashIcon from "vue-material-design-icons/Flash.vue";
 import TextBoxMultipleIcon from "vue-material-design-icons/TextBoxMultiple.vue";
 
 export default {
     components: {
+        GenerateEmailTab,
+        TemplatesTab,
         GenerateEmailPage,
-        TemplatesPage,
-        GenerateEmail,
-        CreateTemplate,
+        TemplateEditorPage,
         Button,
         FlashIcon,
         TextBoxMultipleIcon,
@@ -87,24 +87,24 @@ export default {
         };
 
         const viewMap = {
-            home: GenerateEmailPage,
+            home: GenerateEmailTab,
             templates: {
                 render() {
-                    return h(TemplatesPage, {
+                    return h(TemplatesTab, {
                         currentView: currentView.value,
                     });
                 },
             },
             emailEditor: {
                 render() {
-                    return h(GenerateEmail, {
+                    return h(GenerateEmailPage, {
                         templates: selectedTemplates.value,
                     });
                 },
             },
             templateEditor: {
                 render() {
-                    return h(CreateTemplate, {
+                    return h(TemplateEditorPage, {
                         templateToEdit: templateToEdit.value,
                         onClose: () => {
                             // force chrome.storage.set to complete before navigating

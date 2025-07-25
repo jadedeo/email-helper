@@ -1,8 +1,9 @@
-<!-- src/components/TemplatePage.vue -->
+<!-- src/pages/TemplateTab.vue -->
 <template>
     <div class="flex justify-center bg-white">
         <div class="flex flex-col mb-6 max-w-[550px] bg-white">
             <section class="flex flex-col gap-2 px-6 mb-5">
+                <!-- TODO: update with new greeting/sign-off designs -->
                 <h2>Salutation</h2>
                 <InfoBox
                     heading="Salutations are automatically applied"
@@ -283,8 +284,8 @@ import PencilOutlineIcon from "vue-material-design-icons/PencilOutline.vue";
 import DeleteOutlineIcon from "vue-material-design-icons/DeleteOutline.vue";
 import draggable from "vuedraggable";
 import Button from "../components/Button.vue";
-import InfoBox from "./InfoBox.vue";
-import Modal from "./Modal.vue";
+import InfoBox from "../components/InfoBox.vue";
+import Modal from "../components/Modal.vue";
 
 export default {
     components: {
@@ -459,6 +460,7 @@ export default {
             });
         };
 
+        // TODO: URGENT UPDATE THIS
         const addSalutation = (type) => {
             console.log("add salutation");
             const title = type === "greeting" ? "Greeting" : "Sign-off";

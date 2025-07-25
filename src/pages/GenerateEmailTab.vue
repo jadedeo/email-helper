@@ -1,5 +1,4 @@
-<!-- src/components/GenerateEmailPage.vue -->
-
+<!-- src/pages/GenerateEmailTab.vue -->
 <template>
     <div class="flex justify-center bg-white">
         <div class="flex flex-col gap-5 mb-6 max-w-[550px]">
@@ -106,12 +105,12 @@
 <script>
 import { ref, onMounted, computed } from "vue";
 import Button from "../components/Button.vue";
-import GenerateEmail from "../windows/generate-email/GenerateEmail.vue";
+// import GenerateEmail from "./GenerateEmailPage.vue";
 
 export default {
     components: {
         Button,
-        GenerateEmail,
+        // GenerateEmail,
     },
     emits: ["navigate", "generate"],
     setup(_, { emit }) {

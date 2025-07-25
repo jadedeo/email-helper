@@ -1,7 +1,6 @@
-<!-- src/windows/generate-email/GenerateEmail.vue -->
+<!-- src/pages/GenerateEmailPage.vue -->
 <template>
     <div class="w-full bg-gray-100 py-3 px-6 flex flex-col gap-5 h-dvh">
-        <!-- <h3>Email Response Writer</h3> -->
         <div class="flex gap-3 flex-1 overflow-hidden">
             <!-- LEFT PANEL -->
             <div
@@ -21,7 +20,6 @@
                         </span>
                     </div>
                     <!-- TODO: make selections editable -->
-                    <!-- <Button label="Add More" variant="link" /> -->
                 </section>
 
                 <hr />
@@ -79,8 +77,6 @@
         </div>
 
         <div class="flex justify-end gap-3 w-fill">
-            <!-- TOAST HERE -->
-
             <transition name="fade">
                 <div v-if="showToast" class="text-gray-500 py-2">Copied!</div>
             </transition>
@@ -104,9 +100,9 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted } from "vue";
-import Button from "../../components/Button.vue";
-import "../../../src/style.css";
+import { ref, computed, onMounted } from "vue";
+import Button from "../components/Button.vue";
+import "../style.css";
 
 export default {
     components: {
