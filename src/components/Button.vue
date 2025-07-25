@@ -32,16 +32,20 @@ export default {
 
     setup(props) {
         const computedClass = computed(() => {
-            const base = "font-bold";
+            const base = "font-semibold";
             const cursor = props.disabled
                 ? "opacity-25 cursor-not-allowed"
                 : "cursor-pointer opacity-100";
 
             const variants = {
                 filled: "w-full px-2 py-2 rounded-md bg-lime-700 text-white",
+                cancelFilled:
+                    "w-full p-2 rounded-md bg-gray-50 text-red-600 border-1 border-gray-200",
                 outlined:
-                    "w-full px-2 py-2 rounded-md border border-lime-700 bg-lime-50 text-lime-700",
-                link: "underline underline-offset-2 text-lime-700 font-semibold bg-transparent px-0 py-0",
+                    "w-full p-2 rounded-md border border-lime-700 bg-lime-50 text-lime-700",
+                link: "underline underline-offset-2 text-lime-700 bg-transparent p-0",
+                cancelLink:
+                    "underline underline-offset-2 text-red-600 bg-transparent px-0",
                 activetab:
                     "w-full px-2 py-2 rounded-md bg-lime-200 text-lime-800",
                 inactivetab:

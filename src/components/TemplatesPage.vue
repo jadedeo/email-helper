@@ -1,14 +1,8 @@
 <!-- src/components/TemplatePage.vue -->
 <template>
     <div class="flex justify-center bg-white">
-        <div class="flex flex-col gap-5 mb-6 max-w-[550px] bg-white">
-            <section class="flex flex-col gap-2 px-6">
-                <!-- <Button
-                @button-click="handleExportTemplates"
-                label="Export all templates"
-            />
-            <input type="file" ref="file" @change="handleImportTemplates" /> -->
-
+        <div class="flex flex-col mb-6 max-w-[550px] bg-white">
+            <section class="flex flex-col gap-2 px-6 mb-5">
                 <h2>Salutation</h2>
                 <InfoBox
                     heading="Salutations are automatically applied"
@@ -88,7 +82,6 @@
             </section>
             <hr />
 
-            <!-- TODO: conditionally render sections -->
             <section
                 v-if="
                     templates.filter(
@@ -98,7 +91,7 @@
                 class="px-6"
             >
                 <!-- NO TEMPLATES YET -->
-                <div class="flex flex-col gap-5">
+                <div class="flex flex-col gap-5 mt-5">
                     <div
                         class="w-fit border-solid border-1 border-lime-100 mx-auto rounded-full p-5"
                     >
@@ -117,14 +110,11 @@
                         <p>Upload template files or create a new document.</p>
                     </div>
                     <div class="flex gap-3">
-                        <!-- TODO: add file upload option -->
-                        <Button
-                            @button-click="uploadTemplates"
-                            variant="outlined"
-                            label="Upload templates"
-                            disabled="true"
-                            ><CloudUploadIcon :size="20"
-                        /></Button>
+                        <input
+                            type="file"
+                            ref="file"
+                            @change="handleImportTemplates"
+                        />
                         <Button
                             @button-click="
                                 () => openOrFocusCreateTemplateWindow()
@@ -134,17 +124,30 @@
                             <PlusIcon :size="20" />
                         </Button>
                     </div>
+                    <hr />
                 </div>
             </section>
 
             <section v-else>
                 <!-- HAS TEMPLATES -->
-                <!-- <div> -->
-                <div v-for="sectionName in orderedSections" :key="sectionName">
-                    <div class="px-6 flex flex-col gap-2">
-                        <h3>
-                            {{ sectionName }}
-                        </h3>
+                <div
+                    v-for="sectionName in orderedSections"
+                    :key="sectionName"
+                    class="template-section hover:bg-gray-50"
+                    @mouseover="handleSectionHover(sectionName)"
+                    @mouseleave="clearHoveredSection"
+                >
+                    <div class="px-6 flex flex-col gap-2 py-5">
+                        <div class="flex justify-between w-full">
+                            <h3>{{ sectionName }}</h3>
+                            <DeleteOutlineIcon
+                                v-if="hoveredSection === sectionName"
+                                @click="handleDeleteSection"
+                                fillColor="#e7000b"
+                                :size="18"
+                            />
+                        </div>
+
                         <InfoBox
                             v-if="sectionName === 'Uncategorized Templates'"
                             heading="These templates do not have a section"
@@ -205,14 +208,11 @@
                             />
                         </div>
                     </div>
-                    <hr class="my-5" />
+                    <hr class="" />
                 </div>
-                <!-- </div> -->
             </section>
 
-            <!-- <hr /> -->
-
-            <section class="px-6 flex flex-col gap-5">
+            <section class="px-6 flex flex-col gap-5 mt-5">
                 <input
                     v-if="displaySectionField"
                     type="text"
@@ -245,6 +245,30 @@
             </section>
         </div>
     </div>
+    <Modal v-if="isModalOpen" @close="isModalOpen = false">
+        <template #title>
+            You are about to permanently delete the
+            <strong>"{{ focusedSection }}"</strong> section
+        </template>
+        <template #body>
+            You may either delete all templates within this section, or move
+            them into the <strong>"Uncategorized"</strong> section.
+        </template>
+        <template #footer>
+            <Button
+                label="Delete section"
+                variant="cancelFilled"
+                @button-click="handleConfirmDeleteSection"
+                ><DeleteOutlineIcon fillColor="#e7000b" :size="18"
+            /></Button>
+            <Button
+                label="Delete section and templates"
+                variant="cancelLink"
+                class="w-full"
+                @button-click="handleConfirmDeleteSectionWithTemplates"
+            />
+        </template>
+    </Modal>
 </template>
 
 <script>
@@ -256,9 +280,11 @@ import PlusIcon from "vue-material-design-icons/Plus.vue";
 import TextBoxMultipleIcon from "vue-material-design-icons/TextBoxMultiple.vue";
 import DragVerticalIcon from "vue-material-design-icons/DragVertical.vue";
 import PencilOutlineIcon from "vue-material-design-icons/PencilOutline.vue";
+import DeleteOutlineIcon from "vue-material-design-icons/DeleteOutline.vue";
 import draggable from "vuedraggable";
 import Button from "../components/Button.vue";
 import InfoBox from "./InfoBox.vue";
+import Modal from "./Modal.vue";
 
 export default {
     components: {
@@ -270,6 +296,8 @@ export default {
         TextBoxMultipleIcon,
         DragVerticalIcon,
         PencilOutlineIcon,
+        DeleteOutlineIcon,
+        Modal,
     },
 
     props: {
@@ -288,8 +316,31 @@ export default {
         const sections = ref([]);
         const newSection = ref("");
         const displaySectionField = ref(false);
+        const hoveredSection = ref(null);
+        const focusedSection = ref(null);
+        let displayDeleteSection = ref(false);
         let templatesJSON = ref(null);
         let file = ref(null);
+        const isModalOpen = ref(false);
+
+        const modalActions = [
+            {
+                label: "Delete eection",
+                onClick: () => {
+                    console.log("delete this section");
+                    isModalOpen.value = false;
+                },
+                variant: "link",
+            },
+            {
+                label: "Delete section and templates",
+                onClick: () => {
+                    console.log("delete this section AND templates");
+                    isModalOpen.value = false;
+                },
+                variant: "filled",
+            },
+        ];
 
         onMounted(() => {
             loadTemplates();
@@ -406,10 +457,6 @@ export default {
                 section:
                     template?.section || section || "Uncategorized Templates",
             });
-        };
-
-        const uploadTemplates = () => {
-            console.log("UPLOAD TEMPLATES");
         };
 
         const addSalutation = (type) => {
@@ -562,6 +609,93 @@ export default {
             }
         };
 
+        const handleSectionHover = (sectionName) => {
+            hoveredSection.value = sectionName;
+            focusedSection.value = sectionName;
+        };
+
+        const clearHoveredSection = () => {
+            hoveredSection.value = null;
+        };
+
+        const handleDeleteSection = () => {
+            console.log("fire delete modal", isModalOpen.value);
+            isModalOpen.value = !isModalOpen.value;
+            console.log("fire delete modal", isModalOpen.value);
+        };
+
+        const handleConfirmDeleteSectionWithTemplates = () => {
+            const sectionToDelete = focusedSection.value;
+
+            chrome.storage.local.get(["templates"], (result) => {
+                const existingTemplates = result.templates || [];
+
+                const updatedTemplates = existingTemplates.filter(
+                    (t) => t.section !== sectionToDelete
+                );
+
+                chrome.storage.local.set(
+                    { templates: updatedTemplates },
+                    () => {
+                        chrome.storage.local.get(["sections"], (result) => {
+                            const existingSections = result.sections || [];
+
+                            const updatedSections = existingSections.filter(
+                                (s) => s !== sectionToDelete
+                            );
+
+                            chrome.storage.local.set(
+                                { sections: updatedSections },
+                                () => {
+                                    isModalOpen.value = false;
+                                    focusedSection.value = null;
+                                    loadTemplates();
+                                    emit("close");
+                                }
+                            );
+                        });
+                    }
+                );
+            });
+        };
+
+        const handleConfirmDeleteSection = () => {
+            const sectionToDelete = focusedSection.value;
+
+            chrome.storage.local.get(["templates"], (result) => {
+                const existingTemplates = result.templates || [];
+
+                const updatedTemplates = existingTemplates.map((t) =>
+                    t.section === sectionToDelete
+                        ? { ...t, section: "Uncategorized Templates" }
+                        : t
+                );
+
+                chrome.storage.local.set(
+                    { templates: updatedTemplates },
+                    () => {
+                        chrome.storage.local.get(["sections"], (result) => {
+                            const existingSections = result.sections || [];
+
+                            const updatedSections = existingSections.filter(
+                                (s) => s !== sectionToDelete
+                            );
+
+                            chrome.storage.local.set(
+                                { sections: updatedSections },
+                                () => {
+                                    isModalOpen.value = false;
+                                    focusedSection.value = null;
+                                    loadTemplates();
+                                    emit("close");
+                                }
+                            );
+                        });
+                    }
+                );
+            });
+        };
+
         return {
             templates,
             sections,
@@ -572,7 +706,6 @@ export default {
             displaySectionField,
             cancelAddSection,
             openOrFocusCreateTemplateWindow,
-            uploadTemplates,
             addSalutation,
             sectionTemplates,
             onDragChange,
@@ -583,6 +716,16 @@ export default {
             templatesJSON,
             file,
             orderedSections,
+            displayDeleteSection,
+            handleSectionHover,
+            clearHoveredSection,
+            hoveredSection,
+            handleDeleteSection,
+            isModalOpen,
+            modalActions,
+            handleConfirmDeleteSectionWithTemplates,
+            handleConfirmDeleteSection,
+            focusedSection,
         };
     },
 };

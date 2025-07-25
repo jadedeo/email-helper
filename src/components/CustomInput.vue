@@ -1,6 +1,7 @@
 <!-- src/components/CustomInputComponent.vue -->
 <!-- TODO: add dropdown with suggested field names -->
 <!-- TODO: how to handle same field name? -->
+<!-- TODO: don't let dropdown offset content; lay on top-->
 <template>
     <node-view-wrapper class="custom-input">
         <template v-if="isEditing">

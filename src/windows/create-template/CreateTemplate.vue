@@ -5,7 +5,7 @@
             <InfoBox
                 v-if="showInfoBox && isEditingTemplate"
                 heading="Your changes will be local"
-                body="Changes made to this template will not update anyone else's, only yours."
+                body="Changes made to this template will not update anyone else's, only yours, and will not be recorded unless explicitly saved."
                 colored-bg
                 dismissable
                 @dismiss="showInfoBox = false"
@@ -21,11 +21,6 @@
 
         <editor v-model="templateBody" />
 
-        <!-- FOR TESTING PURPOSES -->
-        <!-- <div class="output-group text-gray-500">
-            <code>{{ templateTitle }}</code>
-            <code>{{ templateBody }}</code>
-        </div> -->
         <div
             class="flex items-center"
             :class="isEditingTemplate ? 'justify-between' : 'justify-end'"
@@ -34,16 +29,16 @@
                 v-if="isEditingTemplate"
                 @button-click="handleDeleteTemplate"
                 label="Delete template"
-                variant="link"
-                class="!text-red-600"
+                variant="cancelLink"
             />
-            <!--   @button-click="closeCreateTemplate" -->
+
             <div class="flex justify-end gap-2 w-fill">
+                <!-- TODO: implement third modal-->
                 <Button
                     label="Cancel"
                     variant="outlined"
                     class="!w-fit !px-10"
-                    @button-click="$emit('close')"
+                    @button-click="handleCancelEditing"
                 />
                 <Button
                     v-if="!isEditingTemplate"
@@ -62,22 +57,56 @@
             </div>
         </div>
     </div>
+    <Modal v-if="isModalOpen" @close="isModalOpen = false">
+        <template #title>
+            <template v-if="modalType === 'delete'">
+                You are about to permanently delete the
+                <strong>"{{ templateTitle }}"</strong> template.
+            </template>
+            <template v-else-if="modalType === 'exitWithoutSaving'">
+                You are about to lose all unsaved changes.
+            </template>
+        </template>
+
+        <template #footer>
+            <template v-if="modalType === 'delete'">
+                <Button
+                    label="Delete template"
+                    variant="cancelFilled"
+                    @button-click="handleConfirmDeleteTemplate"
+                >
+                    <DeleteOutlineIcon fillColor="#e7000b" :size="18" />
+                </Button>
+            </template>
+            <template v-else-if="modalType === 'exitWithoutSaving'">
+                <Button
+                    label="Discard changes"
+                    variant="cancelFilled"
+                    @button-click="handleDiscardChanges"
+                >
+                    <DeleteOutlineIcon fillColor="#e7000b" :size="18" />
+                </Button>
+            </template>
+        </template>
+    </Modal>
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted } from "vue";
-import DeleteIcon from "vue-material-design-icons/Delete.vue";
+import { ref, computed, onMounted } from "vue";
+import DeleteOutlineIcon from "vue-material-design-icons/DeleteOutline.vue";
 import "../../../src/style.css";
 import Editor from "../../components/Editor.vue";
 import Button from "../../components/Button.vue";
 import InfoBox from "../../components/InfoBox.vue";
+import Modal from "../../components/Modal.vue";
 
 export default {
     components: {
         Editor,
         Button,
-        DeleteIcon,
+        DeleteOutlineIcon,
         InfoBox,
+        Modal,
     },
     emits: ["close"],
     props: {
@@ -87,14 +116,14 @@ export default {
         },
     },
     setup(props, { emit }) {
-        // TODO: deal with what should happen when the user tries to open more than one of these windows
-
         const templateTitle = ref("");
         const templateBody = ref("");
         const isEditingTemplate = ref(false);
         const originalTemplate = ref(null);
         const section = ref("Uncategorized Templates");
         const showInfoBox = ref(true);
+        const isModalOpen = ref(false);
+        const modalType = ref("");
 
         onMounted(() => {
             if (props.templateToEdit) {
@@ -108,42 +137,6 @@ export default {
                 );
             }
         });
-
-        // onMounted(() => {
-        //     chrome.storage.session.get(["templateToEdit"], (result) => {
-        //         if (result.templateToEdit) {
-        //             originalTemplate.value = result.templateToEdit;
-
-        //             templateTitle.value = result.templateToEdit.title || "";
-        //             templateBody.value = result.templateToEdit.body || "";
-        //             section.value =
-        //                 result.templateToEdit.section ||
-        //                 "Uncategorized Templates";
-        //             if (
-        //                 result.templateToEdit.title &&
-        //                 result.templateToEdit.body
-        //             ) {
-        //                 isEditingTemplate.value = true;
-        //             }
-        //         }
-        //     });
-
-        //     window.addEventListener("beforeunload", clearTemplateToEdit);
-        // });
-
-        // onUnmounted(() => {
-        //     window.removeEventListener("beforeunload", clearTemplateToEdit);
-        // });
-
-        // TODO: remove if not helping
-        // const closeIfNotPopup = () => {
-        //     setTimeout(() => {
-        //         const popupViews = chrome.runtime.getViews({ type: "popup" });
-        //         if (popupViews.length === 0) {
-        //             window.close();
-        //         }
-        //     }, 0);
-        // };
 
         const clearTemplateToEdit = () => {
             chrome.storage.session.remove("templateToEdit");
@@ -176,12 +169,7 @@ export default {
                     t.id === updatedTemplate.id ? updatedTemplate : t
                 );
 
-                chrome.storage.local.set(
-                    { templates: updatedTemplates },
-                    () => {
-                        // closeIfNotPopup();
-                    }
-                );
+                chrome.storage.local.set({ templates: updatedTemplates });
             });
 
             emit("load-templates");
@@ -212,15 +200,12 @@ export default {
                 title: templateTitle.value.trim(),
                 body: templateBody.value.trim(),
                 section: section.value,
-                // section: "Uncategorized Templates",
             };
 
             chrome.storage.local.get(["templates"], (result) => {
                 const existing = result.templates || [];
                 existing.push(newTemplate);
-                chrome.storage.local.set({ templates: existing }, () => {
-                    // closeIfNotPopup();
-                });
+                chrome.storage.local.set({ templates: existing });
             });
 
             emit("load-templates");
@@ -235,6 +220,25 @@ export default {
         });
 
         const handleDeleteTemplate = () => {
+            modalType.value = "delete";
+            isModalOpen.value = true;
+        };
+
+        const handleCancelEditing = () => {
+            if (disableSaveTemplate.value) {
+                emit("close");
+            } else {
+                modalType.value = "exitWithoutSaving";
+                isModalOpen.value = true;
+            }
+        };
+
+        const handleDiscardChanges = () => {
+            modalType.value = "";
+            emit("close");
+        };
+
+        const handleConfirmDeleteTemplate = () => {
             if (!props.templateToEdit?.id) {
                 console.error("No template to delete.");
                 return;
@@ -256,6 +260,9 @@ export default {
                     }
                 );
             });
+
+            isModalOpen.value = false;
+            modalType.value = "";
             emit("load-templates");
             emit("close");
         };
@@ -270,10 +277,13 @@ export default {
             disableCreateTemplate,
             saveTemplate,
             disableSaveTemplate,
-            // closeCreateTemplate,
             createTemplate,
             showInfoBox,
-            // closeIfNotPopup,
+            isModalOpen,
+            handleConfirmDeleteTemplate,
+            handleCancelEditing,
+            modalType,
+            handleDiscardChanges,
         };
     },
 };
