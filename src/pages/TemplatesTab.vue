@@ -1,18 +1,14 @@
-<!-- src/pages/TemplateTab.vue -->
+<!-- pages/TemplateTab.vue -->
 <template>
     <div class="flex justify-center bg-white">
         <div class="flex flex-col mb-6 max-w-[550px] bg-white">
             <div v-if="isLoading" class="px-6 py-10 text-center text-gray-500">
-                Loading templates…
+                Loading...
             </div>
             <template v-else>
                 <section class="flex flex-col gap-2 px-6 mb-5">
                     <h2>Salutation</h2>
-                    <InfoBox
-                        heading="Salutations are automatically applied"
-                        body="Greetings and sign-off salutations are applied to all email
-                    responses, regardless of which template is used."
-                    />
+                    <InfoBox heading="Salutations are automatically applied" />
 
                     <div>
                         <div

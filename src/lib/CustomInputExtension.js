@@ -1,4 +1,4 @@
-// src/lib/CustomInputExtension.js
+// lib/CustomInputExtension.js
 
 import { mergeAttributes, Node } from "@tiptap/core";
 import { VueNodeViewRenderer } from "@tiptap/vue-3";

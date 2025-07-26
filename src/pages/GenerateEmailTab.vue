@@ -1,4 +1,4 @@
-<!-- src/pages/GenerateEmailTab.vue -->
+<!-- pages/GenerateEmailTab.vue -->
 <template>
     <div
         class="flex justify-center bg-white min-h-[85%]"

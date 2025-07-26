@@ -1,4 +1,4 @@
-<!-- src/components/TextInput.vue -->
+<!-- components/TextInput.vue -->
 
 <!-- TODO: finish this component & replace inputs throughout -->
 <template>

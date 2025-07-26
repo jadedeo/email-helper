@@ -1,4 +1,4 @@
-<!-- src/pages/GenerateEmailPage.vue -->
+<!-- pages/GenerateEmailPage.vue -->
 <!-- TODO: add hr between templates, excluding salutations -->
 <!-- TODO: add back button -->
 <template>

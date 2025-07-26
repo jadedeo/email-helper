@@ -1,3 +1,4 @@
+<!-- components/InfoBox.vue -->
 <template>
     <div
         class="bg-gray-50 p-3 flex flex-col gap-2 rounded-md border-1 border-solid border-gray-100"
@@ -8,7 +9,10 @@
         "
     >
         <div class="flex justify-between">
-            <h5 class="font-bold flex gap-2">
+            <h5
+                class="flex gap-2"
+                :class="body ? 'font-bold' : 'text-gray-500'"
+            >
                 <InformationIcon :size="18" fillColor="#4d7c0f" />{{ heading }}
             </h5>
             <CloseIcon
@@ -19,7 +23,7 @@
             />
         </div>
 
-        <p class="text-gray-500">
+        <p v-if="body" class="text-gray-500">
             {{ body }}
         </p>
     </div>

@@ -1,4 +1,4 @@
-<!-- src/components/Editor.vue -->
+<!-- components/Editor.vue -->
 
 <template>
     <div
@@ -137,8 +137,6 @@ import ItalicFormatIcon from "vue-material-design-icons/FormatItalic.vue";
 import UnderlineFormatIcon from "vue-material-design-icons/FormatUnderline.vue";
 import TextIcon from "vue-material-design-icons/Text.vue";
 import LinkVariantIcon from "vue-material-design-icons/LinkVariant.vue";
-
-// const tiptapNodeViewApp = createApp({});
 
 export default {
     components: {

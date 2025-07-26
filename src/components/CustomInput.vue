@@ -1,4 +1,4 @@
-<!-- src/components/CustomInputComponent.vue -->
+<!-- components/CustomInputComponent.vue -->
 <!-- TODO: how to handle same field name? -->
 <!-- TODO: don't let dropdown offset content; lay on top-->
 <template>

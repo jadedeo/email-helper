@@ -1,3 +1,5 @@
+<!-- components/Button.vue -->
+
 <template>
     <button
         :class="computedClass"

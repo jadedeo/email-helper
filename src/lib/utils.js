@@ -1,4 +1,4 @@
-// src/lib/utils.js
+// lib/utils.js
 
 export const extractCustomInputLabels = (html) => {
     const matches = [

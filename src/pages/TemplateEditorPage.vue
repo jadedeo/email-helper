@@ -1,4 +1,4 @@
-<!-- src/pages/TemplateEditorPage.vue -->
+<!-- pages/TemplateEditorPage.vue -->
 <template>
     <div class="w-full bg-gray-100 py-3 px-6 flex flex-col gap-5 h-dvh">
         <transition name="fade">

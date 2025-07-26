@@ -1,4 +1,4 @@
-<!-- /components/Modal.vue -->
+<!-- components/Modal.vue -->
 <template>
     <Teleport to="body">
         <div
