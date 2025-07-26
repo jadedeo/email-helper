@@ -1,6 +1,6 @@
 <!-- pages/TemplateEditorPage.vue -->
 <template>
-    <div class="w-full bg-gray-100 py-3 px-6 flex flex-col gap-5 h-dvh">
+    <div class="w-full bg-gray-100 py-3 px-6 flex flex-col gap-3 h-dvh">
         <transition name="fade">
             <InfoBox
                 v-if="showInfoBox && isEditingTemplate"
@@ -63,7 +63,7 @@
                 <strong>"{{ templateTitle }}"</strong> template.
             </template>
             <template v-else-if="modalType === 'exitWithoutSaving'">
-                You are about to lose all unsaved changes.
+                You're about to lose all unsaved changes.
             </template>
         </template>
 

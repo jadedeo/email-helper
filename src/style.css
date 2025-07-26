@@ -31,7 +31,7 @@
 }
 
 #app {
-    @apply min-w-[400px] min-h-fit mx-0  flex flex-col gap-8 w-[785px] h-[585px];
+    @apply min-w-[400px] min-h-fit mx-0 flex flex-col gap-8 w-[785px] h-[585px];
 }
 
 input[type="text"] {
@@ -86,4 +86,24 @@ input[type="file"]:active {
 
 input.hidden-file-input {
     display: none;
+}
+
+ul {
+    list-style: circle;
+}
+
+ol {
+    list-style: decimal;
+}
+
+ul,
+ol {
+    padding: 0 1rem;
+    margin: 0.75rem 0.75rem 0.75rem 0.4rem;
+}
+
+ul li p,
+ol li p {
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
 }

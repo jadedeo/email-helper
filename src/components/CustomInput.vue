@@ -1,5 +1,4 @@
 <!-- components/CustomInputComponent.vue -->
-<!-- TODO: how to handle same field name? -->
 <!-- TODO: don't let dropdown offset content; lay on top-->
 <template>
     <node-view-wrapper class="custom-input">
@@ -28,7 +27,7 @@
                     </div>
                 </div>
                 <ul
-                    class="suggestions bg-white rounded-md text-sm max-h-40 overflow-y-auto"
+                    class="suggestions bg-white rounded-md text-sm max-h-40 overflow-y-auto !list-none !m-0 !p-0"
                 >
                     <li
                         v-for="option in filteredOptions"
@@ -57,9 +56,8 @@
 
 <script>
 import { ref, computed, onMounted } from "vue";
-
-// import defaultInputOptions from "../lib/defaultCustomInputOptions.json";
 import { nodeViewProps, NodeViewWrapper } from "@tiptap/vue-3";
+
 import TextIcon from "vue-material-design-icons/Text.vue";
 import Button from "./Button.vue";
 
@@ -115,7 +113,7 @@ export default {
 
                 // dont add newinput if already present in defaults list
                 if (options.includes(newInput)) {
-                    // console.log("That input already exists.");
+                    // console.log("input already exists.");
                     return;
                 }
 

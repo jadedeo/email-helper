@@ -4,7 +4,10 @@
         class="flex justify-center bg-white min-h-[85%]"
         :class="!hasCoreTemplates || !hasSalutations ? 'items-center' : ''"
     >
-        <div class="flex flex-col gap-5 mb-6 max-w-[550px]">
+        <div
+            class="flex flex-col gap-5 mb-6 max-w-[550px] w-full"
+            :class="hasCoreTemplates && hasSalutations ? 'justify-between' : ''"
+        >
             <section
                 v-if="!hasCoreTemplates"
                 class="flex flex-col px-6 text-center"
@@ -26,57 +29,66 @@
                     greeting & sign-off.
                 </p>
             </section>
-            <section v-else class="flex flex-col gap-2 px-6">
-                <h2>What's wrong?</h2>
-                <p>
-                    Please select all aspects of this permit that restrict
-                    automatic approval. These selections will be used to
-                    populate a template.
-                </p>
-            </section>
-            <hr v-if="hasCoreTemplates && hasSalutations" />
+            <!-- TODO: edit this phrasing -->
+            <div v-else class="flex flex-col gap-5">
+                <section class="flex flex-col gap-2 px-6">
+                    <h2>What's wrong?</h2>
+                    <p>
+                        Please select all issues you wish to address in your
+                        email. These selections will be used to populate a
+                        template.
+                    </p>
+                </section>
+                <hr v-if="hasCoreTemplates && hasSalutations" />
 
-            <section
-                v-if="
-                    orderedSections.length && hasCoreTemplates && hasSalutations
-                "
-                v-for="(section, index) in orderedSections"
-                :key="section"
-                class="px-6"
-            >
-                <h3 class="font-semibold mb-2">
-                    {{ section }}
-                </h3>
-                <ul
-                    class="flex flex-col gap-2"
-                    :class="index < orderedSections.length - 1 ? 'mb-4' : ''"
-                >
-                    <li
-                        v-for="template in sectionTemplates[section] || []"
-                        :key="template.id"
-                        class="flex items-center gap-2"
-                    >
-                        <input
-                            type="checkbox"
-                            :id="template.id"
-                            :value="template.id"
-                            v-model="selectedTemplates"
-                        />
-                        <label :for="template.id">{{ template.title }}</label>
-                    </li>
-                </ul>
-
-                <hr
+                <section
                     v-if="
-                        index < populatedSections.length - 1 &&
-                        templates.filter(
-                            (template) => template.section !== 'Salutations'
-                        ).length > 0 &&
+                        orderedSections.length &&
                         hasCoreTemplates &&
                         hasSalutations
                     "
-                />
-            </section>
+                    v-for="(section, index) in orderedSections"
+                    :key="section"
+                    class="px-6"
+                >
+                    <h3 class="font-semibold mb-2">
+                        {{ section }}
+                    </h3>
+                    <ul
+                        class="flex flex-col gap-2 !m-0"
+                        :class="
+                            index < orderedSections.length - 1 ? '!mb-4' : ''
+                        "
+                    >
+                        <li
+                            v-for="template in sectionTemplates[section] || []"
+                            :key="template.id"
+                            class="flex items-center gap-2"
+                        >
+                            <input
+                                type="checkbox"
+                                :id="template.id"
+                                :value="template.id"
+                                v-model="selectedTemplates"
+                            />
+                            <label :for="template.id">{{
+                                template.title
+                            }}</label>
+                        </li>
+                    </ul>
+
+                    <hr
+                        v-if="
+                            index < populatedSections.length - 1 &&
+                            templates.filter(
+                                (template) => template.section !== 'Salutations'
+                            ).length > 0 &&
+                            hasCoreTemplates &&
+                            hasSalutations
+                        "
+                    />
+                </section>
+            </div>
             <section
                 v-if="
                     templates.filter(

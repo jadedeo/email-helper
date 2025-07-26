@@ -8,7 +8,7 @@
         <div
             class="tiptap-menu h-fit flex gap-1 items-center p-1 border-t-1 border-solid border-gray-200"
         >
-            <!-- TODO: add list formatting, linking & font colors -->
+            <!-- TODO: add linking  -->
             <!-- https://tiptap.dev/docs/ui-components/components/link-popover -->
             <Button
                 @click="editor?.chain().focus().toggleBold().run()"
@@ -25,23 +25,29 @@
                 <ItalicFormatIcon fillColor="#000000" :size="18" />
             </Button>
 
-            <!-- <Button
+            <Button
                 @click="editor?.chain().focus().toggleUnderline().run()"
                 :class="{ active: editor?.isActive('underline') }"
                 variant="editormenuitem"
             >
                 <UnderlineFormatIcon fillColor="#000000" :size="18" />
-            </Button> -->
+            </Button>
 
-            <!-- REPLACE WITH LINK ACTION -->
-            <!-- <Button
+            <Button
                 @click="editor?.chain().focus().toggleUnderline().run()"
                 :class="{ active: editor?.isActive('underline') }"
                 variant="editormenuitem"
-                disabled="true"
             >
                 <LinkVariantIcon fillColor="#000000" :size="18" />
-            </Button> -->
+            </Button>
+
+            <input
+                type="color"
+                @input="
+                    editor.chain().focus().setColor($event.target.value).run()
+                "
+                :value="editor?.getAttributes('textStyle').color"
+            />
 
             <Button
                 @click="
@@ -72,11 +78,27 @@
             </Button>
 
             <Button
+                @click="editor?.chain().focus().toggleBulletList().run()"
+                :class="{ active: editor?.isActive('bulletList') }"
+                variant="editormenuitem"
+            >
+                <FormatListBulletedIcon fillColor="#000000" :size="18" />
+            </Button>
+
+            <Button
+                @click="editor?.chain().focus().toggleOrderedList().run()"
+                :class="{ active: editor?.isActive('orderedList') }"
+                variant="editormenuitem"
+            >
+                <FormatListNumberedIcon fillColor="#000000" :size="18" />
+            </Button>
+
+            <Button
                 @click="
                     editor
                         .chain()
                         .focus()
-                        .insertContent({ type: 'customInput' }) // ← match your node name
+                        .insertContent({ type: 'customInput' })
                         .run()
                 "
                 variant="editormenuitem"
@@ -84,71 +106,40 @@
                 ><TextIcon fillColor="#000000" :size="16" />
                 Custom Input Field
             </Button>
-
-            <!-- <Button
-                @click="editor?.chain().focus().toggleBulletList().run()"
-                :class="{ active: editor?.isActive('bulletList') }"
-                variant="editormenuitem"
-            >
-                • List
-            </Button> -->
-
-            <!-- <Button
-                @click="editor?.chain().focus().splitListItem('listItem').run()"
-                :disabled="!editor?.can().splitListItem('listItem')"
-                variant="editormenuitem"
-            >
-                ↩︎ Split
-            </Button> -->
-
-            <!-- <Button
-                @click="editor?.chain().focus().sinkListItem('listItem').run()"
-                :disabled="!editor?.can().sinkListItem('listItem')"
-                variant="editormenuitem"
-            >
-                → Indent
-            </Button> -->
-            <!-- 
-            <Button
-                @click="editor?.chain().focus().liftListItem('listItem').run()"
-                :disabled="!editor?.can().liftListItem('listItem')"
-                variant="editormenuitem"
-            >
-                ← Outdent
-            </Button> -->
         </div>
     </div>
 </template>
 
 <script>
+import { watch, onBeforeUnmount } from "vue";
+
 import { useEditor, EditorContent } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
-// import Placeholder from "@tiptap/extension-placeholder";
-// import BulletList from "@tiptap/extension-bullet-list";
-// import Underline from "@tiptap/extension-underline";
-// import ListItem from "@tiptap/extension-list-item";
-import { watch, onBeforeUnmount } from "vue";
+
+import { Color, TextStyle } from "@tiptap/extension-text-style";
+
 import Button from "../components/Button.vue";
 import CustomInput from "../lib/CustomInputExtension";
-import { createApp } from "vue";
 
 import BoldFormatIcon from "vue-material-design-icons/FormatBold.vue";
 import ItalicFormatIcon from "vue-material-design-icons/FormatItalic.vue";
 import UnderlineFormatIcon from "vue-material-design-icons/FormatUnderline.vue";
 import TextIcon from "vue-material-design-icons/Text.vue";
 import LinkVariantIcon from "vue-material-design-icons/LinkVariant.vue";
+import FormatListBulletedIcon from "vue-material-design-icons/FormatListBulleted.vue";
+import FormatListNumberedIcon from "vue-material-design-icons/FormatListNumbered.vue";
 
 export default {
     components: {
         EditorContent,
-        // BulletList,
-        // ListItem,
         BoldFormatIcon,
         ItalicFormatIcon,
         UnderlineFormatIcon,
         TextIcon,
         LinkVariantIcon,
         Button,
+        FormatListNumberedIcon,
+        FormatListBulletedIcon,
     },
     emits: ["update:modelValue"],
     props: {
@@ -160,31 +151,7 @@ export default {
     setup(props, { emit }) {
         const editor = useEditor({
             content: props.modelValue,
-            extensions: [
-                StarterKit.configure({
-                    // bulletList: false,
-                    // listItem: false,
-                }),
-                ,
-                // Underline,
-                // BulletList.configure({
-                //     itemTypeName: "listItem",
-                //     keepMarks: true,
-                //     HTMLAttributes: {
-                //         class: "bullet-list-class list-inside list-disc ",
-                //     },
-                // }),
-                // ListItem.configure({
-                //     HTMLAttributes: {
-                //         class: "list-item-class",
-                //     },
-                // }),
-                // Placeholder.configure({
-                //     placeholder:
-                //         "Start typing or paste a pre-written template.",
-                // }),
-                CustomInput,
-            ],
+            extensions: [StarterKit, Color, TextStyle, CustomInput],
             editorProps: {
                 attributes: {
                     class: "w-full h-full p-4 focus:outline-none ",
