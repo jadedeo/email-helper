@@ -25,23 +25,23 @@
                 <ItalicFormatIcon fillColor="#000000" :size="18" />
             </Button>
 
-            <Button
+            <!-- <Button
                 @click="editor?.chain().focus().toggleUnderline().run()"
                 :class="{ active: editor?.isActive('underline') }"
                 variant="editormenuitem"
             >
                 <UnderlineFormatIcon fillColor="#000000" :size="18" />
-            </Button>
+            </Button> -->
 
             <!-- REPLACE WITH LINK ACTION -->
-            <Button
+            <!-- <Button
                 @click="editor?.chain().focus().toggleUnderline().run()"
                 :class="{ active: editor?.isActive('underline') }"
                 variant="editormenuitem"
                 disabled="true"
             >
                 <LinkVariantIcon fillColor="#000000" :size="18" />
-            </Button>
+            </Button> -->
 
             <Button
                 @click="
@@ -123,10 +123,10 @@
 <script>
 import { useEditor, EditorContent } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
-import BulletList from "@tiptap/extension-bullet-list";
-import Underline from "@tiptap/extension-underline";
-import ListItem from "@tiptap/extension-list-item";
+// import Placeholder from "@tiptap/extension-placeholder";
+// import BulletList from "@tiptap/extension-bullet-list";
+// import Underline from "@tiptap/extension-underline";
+// import ListItem from "@tiptap/extension-list-item";
 import { watch, onBeforeUnmount } from "vue";
 import Button from "../components/Button.vue";
 import CustomInput from "../lib/CustomInputExtension";
@@ -162,27 +162,27 @@ export default {
             content: props.modelValue,
             extensions: [
                 StarterKit.configure({
-                    bulletList: false,
-                    listItem: false,
-                }),
-                Underline,
-                BulletList.configure({
-                    itemTypeName: "listItem",
-                    keepMarks: true,
-                    HTMLAttributes: {
-                        class: "bullet-list-class list-inside list-disc ",
-                    },
-                }),
-                ListItem.configure({
-                    HTMLAttributes: {
-                        class: "list-item-class",
-                    },
+                    // bulletList: false,
+                    // listItem: false,
                 }),
                 ,
-                Placeholder.configure({
-                    placeholder:
-                        "Start typing or paste a pre-written template.",
-                }),
+                // Underline,
+                // BulletList.configure({
+                //     itemTypeName: "listItem",
+                //     keepMarks: true,
+                //     HTMLAttributes: {
+                //         class: "bullet-list-class list-inside list-disc ",
+                //     },
+                // }),
+                // ListItem.configure({
+                //     HTMLAttributes: {
+                //         class: "list-item-class",
+                //     },
+                // }),
+                // Placeholder.configure({
+                //     placeholder:
+                //         "Start typing or paste a pre-written template.",
+                // }),
                 CustomInput,
             ],
             editorProps: {
