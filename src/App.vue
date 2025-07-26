@@ -40,7 +40,12 @@
 </template>
 
 <script>
-import { h, ref, computed, watch } from "vue";
+import { h, ref, computed, watch, onMounted } from "vue";
+import {
+    initializeDefaultInputOptions,
+    loadTemplatesAndSections,
+    updateDefaultInputsFromUploadedTemplates,
+} from "./lib/utils.js";
 import GenerateEmailTab from "./pages/GenerateEmailTab.vue";
 import TemplatesTab from "./pages/TemplatesTab.vue";
 import TemplateEditorPage from "./pages/TemplateEditorPage.vue";
@@ -48,6 +53,7 @@ import GenerateEmailPage from "./pages/GenerateEmailPage.vue";
 import Button from "./components/Button.vue";
 import FlashIcon from "vue-material-design-icons/Flash.vue";
 import TextBoxMultipleIcon from "vue-material-design-icons/TextBoxMultiple.vue";
+import defaultInputOptions from "../src/lib/defaultCustomInputOptions.json";
 
 export default {
     components: {
@@ -65,6 +71,12 @@ export default {
         const templateToEdit = ref(null);
 
         const componentKey = ref(0);
+
+        onMounted(async () => {
+            await initializeDefaultInputOptions(defaultInputOptions);
+            const { templates } = await loadTemplatesAndSections();
+            updateDefaultInputsFromUploadedTemplates(templates);
+        });
 
         watch(currentView, (newVal) => {
             if (newVal === "templates") {
@@ -112,7 +124,7 @@ export default {
                                 console.log(
                                     "latest templates",
                                     result.templates
-                                ); // optional
+                                );
                                 currentView.value = "templates";
                                 templateToEdit.value = null;
                             });
@@ -148,5 +160,3 @@ export default {
 </script>
 
 <style scoped></style>
-
-<!-- Button-CqOcMjlG.js:14  TypeError: Cannot create property 'value' on string 'templateEditor' -->

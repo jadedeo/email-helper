@@ -92,6 +92,7 @@
 
 <script>
 import { ref, computed, onMounted } from "vue";
+import { removeEmptyCustomInputs } from "../lib/utils.js";
 import DeleteOutlineIcon from "vue-material-design-icons/DeleteOutline.vue";
 import "../style.css";
 import Editor from "../components/Editor.vue";
@@ -154,6 +155,11 @@ export default {
                 return;
             }
 
+            // before saving template, remove any empty <custom-input>'s aka. inputs that don't have a label
+            templateBody.value = removeEmptyCustomInputs(
+                templateBody.value.trim()
+            );
+
             const updatedTemplate = {
                 id: originalTemplate.value.id,
                 title: templateTitle.value.trim(),
@@ -179,6 +185,10 @@ export default {
                 console.error("Chrome storage is not available.");
                 return;
             }
+
+            templateBody.value = removeEmptyCustomInputs(
+                templateBody.value.trim()
+            );
 
             const newTemplate = {
                 id: crypto.randomUUID(),

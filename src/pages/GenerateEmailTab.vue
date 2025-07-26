@@ -44,16 +44,6 @@
                 :key="section"
                 class="px-6"
             >
-                <!-- <section
-                v-if="
-                    populatedSections.length &&
-                    hasCoreTemplates &&
-                    hasSalutations
-                "
-                v-for="(section, index) in populatedSections"
-                :key="section"
-                class="px-6"
-            > -->
                 <h3 class="font-semibold mb-2">
                     {{ section }}
                 </h3>
@@ -110,6 +100,7 @@
 
 <script>
 import { ref, onMounted, computed } from "vue";
+import { loadTemplatesAndSections } from "../lib/utils.js";
 import Button from "../components/Button.vue";
 
 export default {
@@ -122,28 +113,11 @@ export default {
         const sections = ref([]);
         const selectedTemplates = ref([]);
 
-        onMounted(() => {
-            chrome.storage.local.get(["templates", "sections"], (result) => {
-                console.log("GENERATE EMAIL PAGE:");
-                console.log("TEMPLATES:", result.templates);
-                console.log("SECTIONS:", result.sections);
-
-                if (Array.isArray(result.templates)) {
-                    templates.value = result.templates;
-                }
-                if (Array.isArray(result.sections)) {
-                    sections.value = [...result.sections];
-                } else if (result.sections !== undefined) {
-                    // console.warn(
-                    //     "⚠️ Invalid sections format:",
-                    //     result.sections
-                    // );
-                }
-                console.log("AGAIN:");
-
-                console.log("TEMPLATES:", templates.value);
-                console.log("SECTIONS:", sections.value);
-            });
+        onMounted(async () => {
+            const { templates: t, sections: s } =
+                await loadTemplatesAndSections();
+            templates.value = t;
+            sections.value = s;
         });
 
         const orderedSections = computed(() => {
@@ -205,12 +179,16 @@ export default {
         });
 
         const populatedSections = computed(() => {
-            const baseSections = new Set(sections.value);
-            baseSections.add("Uncategorized Templates");
+            const grouped = {};
 
-            return [...baseSections]
-                .filter((s) => sectionTemplates.value[s]?.length)
-                .filter((s) => s !== "Salutations");
+            for (const t of templates.value) {
+                const key = t.section?.trim() || "Uncategorized Templates";
+                if (key === "Salutations") continue;
+                if (!grouped[key]) grouped[key] = [];
+                grouped[key].push(t);
+            }
+
+            return Object.keys(grouped);
         });
 
         const disableNext = computed(() => {

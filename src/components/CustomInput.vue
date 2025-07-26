@@ -1,5 +1,4 @@
 <!-- src/components/CustomInputComponent.vue -->
-<!-- TODO: add dropdown with suggested field names -->
 <!-- TODO: how to handle same field name? -->
 <!-- TODO: don't let dropdown offset content; lay on top-->
 <template>
@@ -33,11 +32,11 @@
                 >
                     <li
                         v-for="option in filteredOptions"
-                        :key="option.name"
-                        @click="selectOption(option.name)"
+                        :key="option"
+                        @click="selectOption(option)"
                         class="cursor-pointer px-3 py-1 hover:bg-lime-100 text-sm"
                     >
-                        {{ option.name }}
+                        {{ option }}
                     </li>
                 </ul>
             </div>
@@ -59,8 +58,7 @@
 <script>
 import { ref, computed, onMounted } from "vue";
 
-import { extractFieldNamesFromTemplates } from "../lib/utils";
-import defaultInputOptions from "../lib/defaultCustomInputOptions.json";
+// import defaultInputOptions from "../lib/defaultCustomInputOptions.json";
 import { nodeViewProps, NodeViewWrapper } from "@tiptap/vue-3";
 import TextIcon from "vue-material-design-icons/Text.vue";
 import Button from "./Button.vue";
@@ -72,15 +70,26 @@ export default {
         Button,
         TextIcon,
     },
-    setup(props, { emit }) {
+    setup(props) {
         const inputValue = ref(props.node.attrs.label || "");
         const isEditing = ref(!props.node.attrs.label);
+        const defaultInputOptions = ref([]);
+
+        onMounted(() => {
+            chrome.storage.local.get(["defaultInputOptions"], (result) => {
+                defaultInputOptions.value = Array.isArray(
+                    result.defaultInputOptions
+                )
+                    ? result.defaultInputOptions
+                    : [];
+            });
+        });
 
         const filteredOptions = computed(() => {
             const query = inputValue.value.trim().toLowerCase();
-            if (!query) return defaultInputOptions;
-            return defaultInputOptions.filter((opt) =>
-                opt.name.toLowerCase().includes(query)
+            if (!query) return defaultInputOptions.value;
+            return defaultInputOptions.value.filter((opt) =>
+                opt.toLowerCase().includes(query)
             );
         });
 
@@ -94,7 +103,25 @@ export default {
             // block empty labels
             if (!trimmed) return;
             props.updateAttributes({ label: trimmed });
+            updateDefaultCustomInputs(trimmed);
             isEditing.value = false;
+        };
+
+        const updateDefaultCustomInputs = (newInput) => {
+            chrome.storage.local.get(["defaultInputOptions"], (result) => {
+                const options = Array.isArray(result.defaultInputOptions)
+                    ? result.defaultInputOptions
+                    : [];
+
+                // dont add newinput if already present in defaults list
+                if (options.includes(newInput)) {
+                    // console.log("That input already exists.");
+                    return;
+                }
+
+                const updated = [...options, newInput];
+                chrome.storage.local.set({ defaultInputOptions: updated });
+            });
         };
 
         return {
@@ -103,6 +130,8 @@ export default {
             inputValue,
             isEditing,
             apply,
+            updateDefaultCustomInputs,
+            defaultInputOptions,
         };
     },
 };

@@ -1,7 +1,1 @@
-[
-    { "name": "Park Name" },
-    { "name": "Picnic Area Name" },
-    { "name": "Customer Name" },
-    { "name": "Staff Name" },
-    { "name": "Date" }
-]
+["Park Name", "Picnic Area Name", "Customer Name", "Staff Name", "Date"]

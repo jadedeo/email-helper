@@ -2,99 +2,92 @@
 <template>
     <div class="flex justify-center bg-white">
         <div class="flex flex-col mb-6 max-w-[550px] bg-white">
-            <section class="flex flex-col gap-2 px-6 mb-5">
-                <!-- TODO: update with new greeting/sign-off designs -->
-                <h2>Salutation</h2>
-                <InfoBox
-                    heading="Salutations are automatically applied"
-                    body="Greetings and sign-off salutations are applied to all email
+            <div v-if="isLoading" class="px-6 py-10 text-center text-gray-500">
+                Loading templates…
+            </div>
+            <template v-else>
+                <section class="flex flex-col gap-2 px-6 mb-5">
+                    <h2>Salutation</h2>
+                    <InfoBox
+                        heading="Salutations are automatically applied"
+                        body="Greetings and sign-off salutations are applied to all email
                     responses, regardless of which template is used."
-                />
-                <!-- <div>
-                    <small
-                        >greetingTemplate:{{
-                            greetingTemplate ? "exists" : "doesn't"
-                        }}</small
-                    >
-                    <small
-                        >signOffTemplate:{{
-                            signOffTemplate ? "exists" : "doesn't"
-                        }}</small
-                    >
-                </div> -->
+                    />
 
-                <div>
-                    <div
-                        class="flex justify-between items-center cursor-grab py-2"
-                    >
-                        <div class="flex gap-1 items-center font-semibold">
-                            Greeting
+                    <div>
+                        <div
+                            class="flex justify-between items-center cursor-grab py-2"
+                        >
+                            <div class="flex gap-1 items-center font-semibold">
+                                Greeting
+                            </div>
+                            <PencilOutlineIcon
+                                v-if="greetingTemplate"
+                                :size="20"
+                                @click="
+                                    () =>
+                                        openTemplateEditorPage(greetingTemplate)
+                                "
+                            />
+                            <Button
+                                v-if="!greetingTemplate"
+                                variant="link"
+                                label="Add greeting"
+                                @button-click="
+                                    () =>
+                                        openTemplateEditorPage({
+                                            title: 'Greeting',
+                                            body: '',
+                                            section: 'Salutations',
+                                        })
+                                "
+                            />
                         </div>
-                        <PencilOutlineIcon
-                            v-if="greetingTemplate"
-                            :size="20"
-                            @click="
-                                () => openTemplateEditorPage(greetingTemplate)
-                            "
-                        />
-                        <Button
-                            v-if="!greetingTemplate"
-                            variant="link"
-                            label="Add greeting"
-                            @button-click="
-                                () =>
-                                    openTemplateEditorPage({
-                                        title: 'Greeting',
-                                        body: '',
-                                        section: 'Salutations',
-                                    })
-                            "
-                        />
-                    </div>
 
-                    <hr />
-                    <div
-                        class="flex justify-between items-center cursor-grab py-2"
-                    >
-                        <div class="flex gap-1 items-center font-semibold">
-                            Sign-off
+                        <hr />
+                        <div
+                            class="flex justify-between items-center cursor-grab py-2"
+                        >
+                            <div class="flex gap-1 items-center font-semibold">
+                                Sign-off
+                            </div>
+                            <PencilOutlineIcon
+                                v-if="signOffTemplate"
+                                :size="20"
+                                @click="
+                                    () =>
+                                        openTemplateEditorPage(signOffTemplate)
+                                "
+                            />
+                            <Button
+                                v-if="!signOffTemplate"
+                                variant="link"
+                                label="Add sign-off"
+                                @button-click="
+                                    () =>
+                                        openTemplateEditorPage({
+                                            title: 'Sign-off',
+                                            body: '',
+                                            section: 'Salutations',
+                                        })
+                                "
+                            />
                         </div>
-                        <PencilOutlineIcon
-                            v-if="signOffTemplate"
-                            :size="20"
-                            @click="
-                                () => openTemplateEditorPage(signOffTemplate)
-                            "
-                        />
-                        <Button
-                            v-if="!signOffTemplate"
-                            variant="link"
-                            label="Add sign-off"
-                            @button-click="
-                                () =>
-                                    openTemplateEditorPage({
-                                        title: 'Sign-off',
-                                        body: '',
-                                        section: 'Salutations',
-                                    })
-                            "
-                        />
                     </div>
-                </div>
-            </section>
-            <hr />
+                </section>
+                <hr />
 
-            <section
-                v-if="
-                    templates.filter(
-                        (template) => template.section !== 'Salutations'
-                    ).length == 0
-                "
-                class="px-6"
-            >
                 <!-- NO TEMPLATES YET -->
-                <div class="flex flex-col gap-5 mt-5">
-                    <!-- <div
+                <section
+                    v-if="
+                        templates.filter(
+                            (template) => template.section !== 'Salutations'
+                        ).length == 0
+                    "
+                    class="px-6"
+                >
+                    <div class="flex flex-col gap-5 mt-5">
+                        <!-- <div
                         class="w-fit border-solid border-1 border-lime-100 mx-auto rounded-full p-6"
                     >
                         <div
@@ -107,152 +100,158 @@
                             </div>
                         </div>
                     </div> -->
-                    <div class="text-center">
-                        <h3>You don't have any templates yet!</h3>
-                        <p>Upload template files or create a new document.</p>
-                    </div>
-                    <div class="flex gap-3">
-                        <Button
-                            class="file-upload-button"
-                            variant="outlined"
-                            label="Upload"
-                            @button-click="triggerFileInput"
-                        >
-                            <CloudUploadIcon :size="18" />
-                            <input
-                                type="file"
-                                ref="file"
-                                @change="handleImportTemplates"
-                                class="hidden-file-input"
-                            />
-                        </Button>
-                        <Button
-                            @button-click="() => openTemplateEditorPage()"
-                            label="Create template"
-                        >
-                            <PlusIcon :size="20" />
-                        </Button>
-                    </div>
-                    <!-- <hr /> -->
-                </div>
-            </section>
-
-            <section v-else>
-                <!-- HAS TEMPLATES -->
-                <div
-                    v-for="sectionName in orderedSections"
-                    :key="sectionName"
-                    class="template-section hover:bg-gray-50"
-                    @mouseover="handleSectionHover(sectionName)"
-                    @mouseleave="clearHoveredSection"
-                >
-                    <div class="px-6 flex flex-col gap-2 py-5">
-                        <div class="flex justify-between w-full">
-                            <h3>{{ sectionName }}</h3>
-                            <DeleteOutlineIcon
-                                v-if="hoveredSection === sectionName"
-                                @click="handleDeleteSection"
-                                fillColor="#e7000b"
-                                :size="18"
-                            />
+                        <div class="text-center">
+                            <h3>You don't have any templates yet!</h3>
+                            <p>
+                                Upload template files or create a new document.
+                            </p>
                         </div>
+                        <div class="flex gap-3">
+                            <Button
+                                class="file-upload-button"
+                                variant="outlined"
+                                label="Upload"
+                                @button-click="triggerFileInput"
+                            >
+                                <CloudUploadIcon :size="18" />
+                                <input
+                                    type="file"
+                                    ref="file"
+                                    @change="handleImportTemplates"
+                                    class="hidden-file-input"
+                                />
+                            </Button>
+                            <Button
+                                @button-click="() => openTemplateEditorPage()"
+                                label="Create template"
+                            >
+                                <PlusIcon :size="20" />
+                            </Button>
+                        </div>
+                        <!-- <hr /> -->
+                    </div>
+                </section>
 
-                        <InfoBox
-                            v-if="sectionName === 'Uncategorized Templates'"
-                            heading="These templates do not have a section"
-                            body="You may want to add them to an existing section or create a new one."
-                        />
+                <!-- HAS TEMPLATES -->
+                <section v-else>
+                    <div
+                        v-for="sectionName in orderedSections"
+                        :key="sectionName"
+                        class="template-section hover:bg-gray-50"
+                        @mouseover="handleSectionHover(sectionName)"
+                        @mouseleave="clearHoveredSection"
+                    >
+                        <div class="px-6 flex flex-col gap-2 py-5">
+                            <div class="flex justify-between w-full">
+                                <h3>{{ sectionName }}</h3>
+                                <DeleteOutlineIcon
+                                    v-if="hoveredSection === sectionName"
+                                    @click="handleDeleteSection"
+                                    fillColor="#e7000b"
+                                    :size="18"
+                                />
+                            </div>
 
-                        <draggable
-                            :list="sectionTemplates[sectionName] || []"
-                            group="templates"
-                            itemKey="id"
-                            @change="(e) => onDragChange(e, sectionName)"
-                        >
-                            <template #item="{ element, index: templateIndex }">
-                                <div>
-                                    <div
-                                        class="flex justify-between items-center cursor-grab py-2"
-                                    >
+                            <InfoBox
+                                v-if="sectionName === 'Uncategorized Templates'"
+                                heading="These templates do not have a section"
+                                body="You may want to add them to an existing section or create a new one."
+                            />
+
+                            <draggable
+                                :list="sectionTemplates[sectionName] || []"
+                                group="templates"
+                                itemKey="id"
+                                @change="(e) => onDragChange(e, sectionName)"
+                            >
+                                <template
+                                    #item="{ element, index: templateIndex }"
+                                >
+                                    <div>
                                         <div
-                                            class="flex gap-1 items-center font-semibold"
+                                            class="flex justify-between items-center cursor-grab py-2"
                                         >
-                                            <DragVerticalIcon :size="18" />
-                                            {{ element.title }}
+                                            <div
+                                                class="flex gap-1 items-center font-semibold"
+                                            >
+                                                <DragVerticalIcon :size="18" />
+                                                {{ element.title }}
+                                            </div>
+                                            <PencilOutlineIcon
+                                                :size="20"
+                                                @click="
+                                                    () =>
+                                                        openTemplateEditorPage(
+                                                            element
+                                                        )
+                                                "
+                                            />
                                         </div>
-                                        <PencilOutlineIcon
-                                            :size="20"
-                                            @click="
-                                                () =>
-                                                    openTemplateEditorPage(
-                                                        element
-                                                    )
+
+                                        <hr
+                                            v-if="
+                                                templateIndex <
+                                                (sectionTemplates[sectionName]
+                                                    ?.length || 0) -
+                                                    1
                                             "
                                         />
                                     </div>
+                                </template>
+                            </draggable>
 
-                                    <hr
-                                        v-if="
-                                            templateIndex <
-                                            (sectionTemplates[sectionName]
-                                                ?.length || 0) -
-                                                1
-                                        "
-                                    />
-                                </div>
-                            </template>
-                        </draggable>
-
-                        <div class="w-full">
-                            <Button
-                                @button-click="
-                                    () =>
-                                        openTemplateEditorPage(
-                                            null,
-                                            sectionName
-                                        )
-                                "
-                                label="Add template"
-                                variant="link"
-                            />
+                            <div class="w-full">
+                                <Button
+                                    @button-click="
+                                        () =>
+                                            openTemplateEditorPage(
+                                                null,
+                                                null,
+                                                sectionName
+                                            )
+                                    "
+                                    label="Add template"
+                                    variant="link"
+                                />
+                            </div>
                         </div>
+                        <hr class="" />
                     </div>
-                    <hr class="" />
-                </div>
-            </section>
+                </section>
 
-            <section class="px-6 flex flex-col gap-5 mt-5">
-                <input
-                    v-if="displaySectionField"
-                    type="text"
-                    v-model="newSection"
-                    placeholder="New section name"
-                    class="standard"
-                />
-
-                <div v-if="displaySectionField" class="flex gap-3">
-                    <Button
-                        label="Cancel"
-                        variant="outlined"
-                        @button-click="cancelAddSection"
+                <section class="px-6 flex flex-col gap-5 mt-5">
+                    <input
+                        v-if="displaySectionField"
+                        type="text"
+                        v-model="newSection"
+                        placeholder="New section name"
+                        class="standard"
                     />
-                    <Button
-                        label="Create section"
-                        variant="filled"
-                        :disabled="disableCreateSection"
-                        @button-click="createSection"
-                    />
-                </div>
 
-                <!-- TODO: only display if has at least one template -->
-                <!-- <Button
+                    <div v-if="displaySectionField" class="flex gap-3">
+                        <Button
+                            label="Cancel"
+                            variant="outlined"
+                            @button-click="cancelAddSection"
+                        />
+                        <Button
+                            label="Create section"
+                            variant="filled"
+                            :disabled="disableCreateSection"
+                            @button-click="createSection"
+                        />
+                    </div>
+
+                    <!-- TODO: only display if has at least one template -->
+                    <!-- <Button
                     v-if="!displaySectionField"
                     label="Add section"
                     variant="outlined"
                     @button-click="addSection"
                     ><PlusIcon :size="20"
                 /></Button> -->
-            </section>
+                </section>
+            </template>
         </div>
     </div>
     <Modal v-if="isModalOpen" @close="isModalOpen = false">
@@ -284,6 +283,10 @@
 <script>
 import { ref, onMounted, computed, watch } from "vue";
 import { saveAs } from "file-saver";
+import {
+    loadTemplatesAndSections,
+    updateDefaultInputsFromUploadedTemplates,
+} from "../lib/utils.js";
 
 import CloudUploadIcon from "vue-material-design-icons/CloudUploadOutline.vue";
 import PlusIcon from "vue-material-design-icons/Plus.vue";
@@ -332,6 +335,7 @@ export default {
         let templatesJSON = ref(null);
         let file = ref(null);
         const isModalOpen = ref(false);
+        const isLoading = ref(true);
 
         const modalActions = [
             {
@@ -352,11 +356,20 @@ export default {
             },
         ];
 
-        const triggerFileInput = () => {
-            file.value?.click();
+        const loadTemplates = async () => {
+            isLoading.value = true;
+
+            const [{ templates: t, sections: s }] = await Promise.all([
+                loadTemplatesAndSections(),
+                new Promise((resolve) => setTimeout(resolve, 300)), // forced delay to prevent flashing
+            ]);
+
+            templates.value = t;
+            sections.value = s;
+            isLoading.value = false;
         };
 
-        onMounted(() => {
+        onMounted(async () => {
             loadTemplates();
         });
 
@@ -367,26 +380,30 @@ export default {
             }
         );
 
-        const loadTemplates = () => {
-            chrome.storage.local.get(["templates", "sections"], (result) => {
-                templates.value = Array.isArray(result.templates)
-                    ? result.templates
-                    : [];
-
-                if (Array.isArray(result.sections)) {
-                    sections.value = result.sections;
-                } else {
-                    const sectionNames = new Set(
-                        templates.value.map(
-                            (t) =>
-                                t.section?.trim() || "Uncategorized Templates"
-                        )
-                    );
-                    sections.value = [...sectionNames];
-                    chrome.storage.local.set({ sections: sections.value });
-                }
-            });
+        const triggerFileInput = () => {
+            file.value?.click();
         };
+
+        // const loadTemplates = () => {
+        // chrome.storage.local.get(["templates", "sections"], (result) => {
+        //     templates.value = Array.isArray(result.templates)
+        //         ? result.templates
+        //         : [];
+
+        //     if (Array.isArray(result.sections)) {
+        //         sections.value = result.sections;
+        //     } else {
+        //         const sectionNames = new Set(
+        //             templates.value.map(
+        //                 (t) =>
+        //                     t.section?.trim() || "Uncategorized Templates"
+        //             )
+        //         );
+        //         sections.value = [...sectionNames];
+        //         chrome.storage.local.set({ sections: sections.value });
+        //     }
+        // });
+        // };
 
         const onDragChange = (event, newSectionName) => {
             const { added, moved } = event;
@@ -580,25 +597,33 @@ export default {
                             ...templatesWithNewIds,
                         ];
 
+                        const newSections = [
+                            ...new Set(
+                                mergedTemplates.map(
+                                    (t) =>
+                                        t.section?.trim() ||
+                                        "Uncategorized Templates"
+                                )
+                            ),
+                        ];
+
                         chrome.storage.local.set(
                             { templates: mergedTemplates },
                             () => {
-                                console.log("Templates successfully imported.");
-                                templates.value = mergedTemplates;
+                                chrome.storage.local.set(
+                                    { sections: newSections },
+                                    () => {
+                                        templates.value = mergedTemplates;
+                                        sections.value = newSections;
+
+                                        updateDefaultInputsFromUploadedTemplates(
+                                            templatesWithNewIds
+                                        );
+                                        loadTemplates();
+                                    }
+                                );
                             }
                         );
-
-                        const newSections = new Set(
-                            mergedTemplates.map(
-                                (t) =>
-                                    t.section?.trim() ||
-                                    "Uncategorized Templates"
-                            )
-                        );
-
-                        const sectionsArray = [...newSections];
-                        sections.value = sectionsArray;
-                        chrome.storage.local.set({ sections: sectionsArray });
                     });
                 };
             } catch (error) {
@@ -723,6 +748,8 @@ export default {
             handleConfirmDeleteSection,
             focusedSection,
             triggerFileInput,
+            updateDefaultInputsFromUploadedTemplates,
+            isLoading,
         };
     },
 };

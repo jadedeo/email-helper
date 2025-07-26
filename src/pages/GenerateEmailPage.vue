@@ -1,4 +1,5 @@
 <!-- src/pages/GenerateEmailPage.vue -->
+<!-- TODO: add hr between templates, excluding salutations -->
 <template>
     <div class="w-full bg-gray-100 py-3 px-6 flex flex-col gap-5 h-dvh">
         <div class="flex gap-3 flex-1 overflow-hidden">
