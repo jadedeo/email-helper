@@ -110,7 +110,7 @@
     </div>
 </template>
 
-<script>
+<script setup>
 import { watch, onBeforeUnmount } from "vue";
 
 import { useEditor, EditorContent } from "@tiptap/vue-3";
@@ -129,55 +129,40 @@ import LinkVariantIcon from "vue-material-design-icons/LinkVariant.vue";
 import FormatListBulletedIcon from "vue-material-design-icons/FormatListBulleted.vue";
 import FormatListNumberedIcon from "vue-material-design-icons/FormatListNumbered.vue";
 
-export default {
-    components: {
-        EditorContent,
-        BoldFormatIcon,
-        ItalicFormatIcon,
-        UnderlineFormatIcon,
-        TextIcon,
-        LinkVariantIcon,
-        Button,
-        FormatListNumberedIcon,
-        FormatListBulletedIcon,
+const emit = defineEmits(["update:modelValue"]);
+
+const props = defineProps({
+    modelValue: {
+        type: String,
+        required: true,
     },
-    emits: ["update:modelValue"],
-    props: {
-        modelValue: {
-            type: String,
-            required: true,
+});
+
+const editor = useEditor({
+    content: props.modelValue,
+    extensions: [StarterKit, Color, TextStyle, CustomInput],
+    editorProps: {
+        attributes: {
+            class: "w-full h-full p-4 focus:outline-none ",
         },
     },
-    setup(props, { emit }) {
-        const editor = useEditor({
-            content: props.modelValue,
-            extensions: [StarterKit, Color, TextStyle, CustomInput],
-            editorProps: {
-                attributes: {
-                    class: "w-full h-full p-4 focus:outline-none ",
-                },
-            },
-            onUpdate({ editor }) {
-                emit("update:modelValue", editor.getHTML());
-            },
-        });
-
-        watch(
-            () => props.modelValue,
-            (newValue) => {
-                if (editor.value && newValue !== editor.value.getHTML()) {
-                    editor.value.commands.setContent(newValue, false);
-                }
-            }
-        );
-
-        onBeforeUnmount(() => {
-            if (editor.value) editor.value.destroy();
-        });
-
-        return { editor };
+    onUpdate({ editor }) {
+        emit("update:modelValue", editor.getHTML());
     },
-};
+});
+
+watch(
+    () => props.modelValue,
+    (newValue) => {
+        if (editor.value && newValue !== editor.value.getHTML()) {
+            editor.value.commands.setContent(newValue, false);
+        }
+    }
+);
+
+onBeforeUnmount(() => {
+    if (editor.value) editor.value.destroy();
+});
 </script>
 
 <style scoped>

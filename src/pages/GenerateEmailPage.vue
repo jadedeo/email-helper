@@ -1,6 +1,5 @@
 <!-- pages/GenerateEmailPage.vue -->
 <!-- TODO: add hr between templates, excluding salutations -->
-<!-- TODO: add back button -->
 <template>
     <div class="w-full bg-gray-100 py-3 px-6 flex flex-col gap-3 h-dvh">
         <div class="flex gap-3 flex-1 overflow-hidden">
@@ -78,224 +77,232 @@
             </div>
         </div>
 
-        <div class="flex justify-end gap-3 w-fill">
-            <transition name="fade">
-                <div v-if="showToast" class="text-gray-500 py-2">Copied!</div>
-            </transition>
-
+        <div class="flex w-full justify-between">
             <Button
-                @button-click="copyFormattedEmail"
-                label="Copy with Formatting"
-                variant="outlined"
-                class="!w-fit !px-5"
-                :disabled="disableCopyAndDraft"
+                label="Back to template selection"
+                variant="cancelLink"
+                @button-click="isModalOpen = true"
             />
+            <div class="flex justify-end gap-3">
+                <transition name="fade">
+                    <div v-if="showToast" class="text-gray-500 py-2">
+                        Copied!
+                    </div>
+                </transition>
 
-            <Button
-                @button-click="launchPlaintextEmail"
-                label="Create Draft in Mail Client"
-                class="!w-fit !px-5"
-                :disabled="disableCopyAndDraft"
-            />
+                <Button
+                    @button-click="copyFormattedEmail"
+                    label="Copy with Formatting"
+                    variant="outlined"
+                    class="!w-fit !px-5"
+                    :disabled="disableCopyAndDraft"
+                />
+
+                <Button
+                    @button-click="launchPlaintextEmail"
+                    label="Create Draft in Mail Client"
+                    class="!w-fit !px-5"
+                    :disabled="disableCopyAndDraft"
+                />
+            </div>
         </div>
     </div>
+    <Modal v-if="isModalOpen" @close="isModalOpen = false">
+        <template #title> You'e about to lose all progress. </template>
+
+        <template #footer>
+            <Button
+                label="Discard email"
+                variant="cancelFilled"
+                @button-click="handleConfirmDiscardEmail"
+            >
+                <DeleteOutlineIcon fillColor="#e7000b" :size="18" />
+            </Button>
+        </template>
+    </Modal>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted } from "vue";
 import Button from "../components/Button.vue";
+import Modal from "../components/Modal.vue";
+import DeleteOutlineIcon from "vue-material-design-icons/DeleteOutline.vue";
+
 import "../style.css";
 
-export default {
-    components: {
-        Button,
+const props = defineProps({
+    templates: {
+        type: Array,
+        required: true,
     },
-    props: {
-        templates: {
-            type: Array,
-            required: true,
-        },
-    },
-    setup(props) {
-        const subject = ref("");
+});
 
-        let extractedHTML = ref("");
-        const inputValues = ref({});
+const subject = ref("");
 
-        const showToast = ref(false);
+let extractedHTML = ref("");
+const inputValues = ref({});
 
-        console.log("Selected templates:", props.templates);
+const showToast = ref(false);
+const isModalOpen = ref(false);
 
-        onMounted(() => {
-            props.templates.forEach((template, index) => {
-                extractedHTML.value += template.body;
-                if (index < props.templates.length - 1) {
-                    extractedHTML.value += `<div data-template-split style="height: 1.5rem;"></div>`;
+console.log("Selected templates:", props.templates);
+
+onMounted(() => {
+    props.templates.forEach((template, index) => {
+        extractedHTML.value += template.body;
+        if (index < props.templates.length - 1) {
+            extractedHTML.value += `<div data-template-split style="height: 1.5rem;"></div>`;
+        }
+    });
+
+    const placeholderRegex =
+        /<custom-input\s+label="([^"]+)"\s*><\/custom-input>/g;
+    const uniqueLabels = new Set();
+    let match;
+
+    while ((match = placeholderRegex.exec(extractedHTML.value)) !== null) {
+        uniqueLabels.add(match[1]);
+    }
+
+    uniqueLabels.forEach((label) => {
+        inputValues.value[label] = "";
+    });
+});
+
+const filledHTML = computed(() => {
+    let result = extractedHTML.value;
+
+    for (const [label, value] of Object.entries(inputValues.value)) {
+        const regex = new RegExp(
+            `<custom-input\\s+label="${label}"\\s*><\\/custom-input>`,
+            "g"
+        );
+
+        const isEmpty = value.trim() === "";
+        const pillClass = isEmpty
+            ? "bg-white border border-red-400"
+            : "bg-white border border-lime-500";
+
+        const displayValue = isEmpty ? label : value;
+
+        result = result.replace(
+            regex,
+            `<span class="${pillClass} px-2 py-0 rounded-full font-semibold drop-shadow-sm">${displayValue}</span>`
+        );
+    }
+
+    return result;
+});
+
+const launchPlaintextEmail = () => {
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = filledHTML.value;
+
+    const walk = (node) => {
+        let text = "";
+
+        node.childNodes.forEach((child) => {
+            if (child.nodeType === Node.TEXT_NODE) {
+                text += child.textContent;
+            } else if (child.nodeType === Node.ELEMENT_NODE) {
+                const tag = child.tagName.toLowerCase();
+
+                if (tag === "br") {
+                    text += "\n";
+                } else if (tag === "p") {
+                    if (child.textContent.trim() === "") {
+                        text += "\n";
+                    } else {
+                        text += walk(child) + "\n";
+                    }
+                } else if (
+                    tag === "div" &&
+                    child.dataset.templateSplit !== undefined
+                ) {
+                    // spacer between templates
+                    text += "\n\n";
+                } else if (["p", "div", "section", "li"].includes(tag)) {
+                    text += walk(child) + "\n";
+                } else {
+                    text += walk(child);
                 }
-            });
-
-            const placeholderRegex =
-                /<custom-input\s+label="([^"]+)"\s*><\/custom-input>/g;
-            const uniqueLabels = new Set();
-            let match;
-
-            while (
-                (match = placeholderRegex.exec(extractedHTML.value)) !== null
-            ) {
-                uniqueLabels.add(match[1]);
             }
-
-            uniqueLabels.forEach((label) => {
-                inputValues.value[label] = "";
-            });
         });
 
-        const filledHTML = computed(() => {
-            let result = extractedHTML.value;
+        return text;
+    };
 
-            for (const [label, value] of Object.entries(inputValues.value)) {
-                const regex = new RegExp(
-                    `<custom-input\\s+label="${label}"\\s*><\\/custom-input>`,
-                    "g"
-                );
+    const plainTextWithBreaks = walk(tempDiv)
+        .replace(/\n{3,}/g, "\n\n") // collapse excessive spacing
+        .replace(/[ \t]+\n/g, "\n") // clean trailing whitespace
+        .trim();
 
-                const isEmpty = value.trim() === "";
-                const pillClass = isEmpty
-                    ? "bg-white border border-red-400"
-                    : "bg-white border border-lime-500";
+    const mailtoLink = `mailto:?subject=${encodeURIComponent(
+        subject.value
+    )}&body=${encodeURIComponent(plainTextWithBreaks)}`;
+    window.location.href = mailtoLink;
+};
 
-                const displayValue = isEmpty ? label : value;
+const copyFormattedEmail = async () => {
+    try {
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = filledHTML.value;
 
-                result = result.replace(
-                    regex,
-                    `<span class="${pillClass} px-2 py-0 rounded-full font-semibold drop-shadow-sm">${displayValue}</span>`
-                );
-            }
-
-            return result;
+        tempDiv.querySelectorAll("[data-template-split]").forEach((el) => {
+            const spacer = document.createElement("span");
+            spacer.innerHTML = "&nbsp;";
+            spacer.style.display = "block";
+            spacer.style.lineHeight = "1.5em";
+            spacer.style.marginTop = "0.75em";
+            spacer.style.marginBottom = "0.75em";
+            el.replaceWith(spacer);
         });
 
-        const launchPlaintextEmail = () => {
-            const tempDiv = document.createElement("div");
-            tempDiv.innerHTML = filledHTML.value;
+        tempDiv.querySelectorAll("p, h1, h2, h3").forEach((p) => {
+            p.style.margin = "0";
+        });
 
-            const walk = (node) => {
-                let text = "";
+        tempDiv.querySelectorAll("p").forEach((p) => {
+            if (p.innerHTML.trim() === "") {
+                p.innerHTML = "&nbsp;";
+            }
+            p.style.margin = "0 0 1em 0"; // give all p tags bottom spacing
+        });
 
-                node.childNodes.forEach((child) => {
-                    if (child.nodeType === Node.TEXT_NODE) {
-                        text += child.textContent;
-                    } else if (child.nodeType === Node.ELEMENT_NODE) {
-                        const tag = child.tagName.toLowerCase();
-
-                        if (tag === "br") {
-                            text += "\n";
-                        } else if (tag === "p") {
-                            if (child.textContent.trim() === "") {
-                                text += "\n";
-                            } else {
-                                text += walk(child) + "\n";
-                            }
-                        } else if (
-                            tag === "div" &&
-                            child.dataset.templateSplit !== undefined
-                        ) {
-                            // spacer between templates
-                            text += "\n\n";
-                        } else if (
-                            ["p", "div", "section", "li"].includes(tag)
-                        ) {
-                            text += walk(child) + "\n";
-                        } else {
-                            text += walk(child);
-                        }
-                    }
-                });
-
-                return text;
-            };
-
-            const plainTextWithBreaks = walk(tempDiv)
-                .replace(/\n{3,}/g, "\n\n") // collapse excessive spacing
-                .replace(/[ \t]+\n/g, "\n") // clean trailing whitespace
-                .trim();
-
-            const mailtoLink = `mailto:?subject=${encodeURIComponent(
-                subject.value
-            )}&body=${encodeURIComponent(plainTextWithBreaks)}`;
-            window.location.href = mailtoLink;
-        };
-
-        const copyFormattedEmail = async () => {
-            try {
-                const tempDiv = document.createElement("div");
-                tempDiv.innerHTML = filledHTML.value;
-
-                tempDiv
-                    .querySelectorAll("[data-template-split]")
-                    .forEach((el) => {
-                        const spacer = document.createElement("span");
-                        spacer.innerHTML = "&nbsp;";
-                        spacer.style.display = "block";
-                        spacer.style.lineHeight = "1.5em";
-                        spacer.style.marginTop = "0.75em";
-                        spacer.style.marginBottom = "0.75em";
-                        el.replaceWith(spacer);
-                    });
-
-                tempDiv.querySelectorAll("p, h1, h2, h3").forEach((p) => {
-                    p.style.margin = "0";
-                });
-
-                tempDiv.querySelectorAll("p").forEach((p) => {
-                    if (p.innerHTML.trim() === "") {
-                        p.innerHTML = "&nbsp;";
-                    }
-                    p.style.margin = "0 0 1em 0"; // give all p tags bottom spacing
-                });
-
-                const wrappedHTML = `
+        const wrappedHTML = `
             <div style="font-family: Calibri, sans-serif; font-size: 11pt;">
                 ${tempDiv.innerHTML}
             </div>
         `;
 
-                await navigator.clipboard.write([
-                    new ClipboardItem({
-                        "text/html": new Blob([wrappedHTML], {
-                            type: "text/html",
-                        }),
-                    }),
-                ]);
+        await navigator.clipboard.write([
+            new ClipboardItem({
+                "text/html": new Blob([wrappedHTML], {
+                    type: "text/html",
+                }),
+            }),
+        ]);
 
-                showToast.value = true;
-                setTimeout(() => (showToast.value = false), 2000);
-            } catch (error) {
-                console.error("Clipboard copy failed:", error);
-                alert("Could not copy email. Please try again.");
-            }
-        };
+        showToast.value = true;
+        setTimeout(() => (showToast.value = false), 2000);
+    } catch (error) {
+        console.error("Clipboard copy failed:", error);
+        alert("Could not copy email. Please try again.");
+    }
+};
 
-        const disableCopyAndDraft = computed(() => {
-            const allInputsFilled = Object.values(inputValues.value).every(
-                (val) => val.trim() !== ""
-            );
+const disableCopyAndDraft = computed(() => {
+    const allInputsFilled = Object.values(inputValues.value).every(
+        (val) => val.trim() !== ""
+    );
 
-            return !allInputsFilled;
-        });
+    return !allInputsFilled;
+});
 
-        return {
-            props,
-            subject,
-            extractedHTML,
-            inputValues,
-            disableCopyAndDraft,
-            filledHTML,
-            launchPlaintextEmail,
-            copyFormattedEmail,
-            showToast,
-        };
-    },
+const handleConfirmDiscardEmail = () => {
+    console.log("back to template selection");
+    isModalOpen.value = false;
+    emit("navigate-to-generate-tab");
 };
 </script>
 

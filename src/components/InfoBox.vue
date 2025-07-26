@@ -29,41 +29,33 @@
     </div>
 </template>
 
-<script>
+<script setup>
 import InformationIcon from "vue-material-design-icons/Information.vue";
 import CloseIcon from "vue-material-design-icons/Close.vue";
 
-export default {
-    components: {
-        InformationIcon,
-        CloseIcon,
+const props = defineProps({
+    heading: {
+        type: String,
+        required: true,
     },
-    props: {
-        heading: {
-            type: String,
-            required: true,
-        },
-        body: {
-            type: String,
-            required: false,
-        },
-        coloredBg: {
-            type: Boolean,
-            require: false,
-            default: false,
-        },
-        dismissable: {
-            type: Boolean,
-            require: false,
-            default: false,
-        },
+    body: {
+        type: String,
+        required: false,
     },
-    setup(_, { emit }) {
-        const handleDismiss = () => {
-            emit("dismiss");
-        };
-        return { handleDismiss };
+    coloredBg: {
+        type: Boolean,
+        require: false,
+        default: false,
     },
+    dismissable: {
+        type: Boolean,
+        require: false,
+        default: false,
+    },
+});
+
+const handleDismiss = () => {
+    emit("dismiss");
 };
 </script>
 

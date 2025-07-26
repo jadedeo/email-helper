@@ -29,7 +29,7 @@
                     greeting & sign-off.
                 </p>
             </section>
-            <!-- TODO: edit this phrasing -->
+
             <div v-else class="flex flex-col gap-5">
                 <section class="flex flex-col gap-2 px-6">
                     <h2>What's wrong?</h2>
@@ -41,53 +41,59 @@
                 </section>
                 <hr v-if="hasCoreTemplates && hasSalutations" />
 
-                <section
-                    v-if="
-                        orderedSections.length &&
-                        hasCoreTemplates &&
-                        hasSalutations
-                    "
-                    v-for="(section, index) in orderedSections"
-                    :key="section"
-                    class="px-6"
-                >
-                    <h3 class="font-semibold mb-2">
-                        {{ section }}
-                    </h3>
-                    <ul
-                        class="flex flex-col gap-2 !m-0"
-                        :class="
-                            index < orderedSections.length - 1 ? '!mb-4' : ''
-                        "
-                    >
-                        <li
-                            v-for="template in sectionTemplates[section] || []"
-                            :key="template.id"
-                            class="flex items-center gap-2"
-                        >
-                            <input
-                                type="checkbox"
-                                :id="template.id"
-                                :value="template.id"
-                                v-model="selectedTemplates"
-                            />
-                            <label :for="template.id">{{
-                                template.title
-                            }}</label>
-                        </li>
-                    </ul>
-
-                    <hr
+                <div class="overflow-y-scroll flex flex-col gap-5">
+                    <section
                         v-if="
-                            index < populatedSections.length - 1 &&
-                            templates.filter(
-                                (template) => template.section !== 'Salutations'
-                            ).length > 0 &&
+                            orderedSections.length &&
                             hasCoreTemplates &&
                             hasSalutations
                         "
-                    />
-                </section>
+                        v-for="(section, index) in orderedSections"
+                        :key="section"
+                        class="px-6"
+                    >
+                        <h3 class="font-semibold mb-2">
+                            {{ section }}
+                        </h3>
+                        <ul
+                            class="flex flex-col gap-2 !m-0 !p-0"
+                            :class="
+                                index < orderedSections.length - 1
+                                    ? '!mb-4'
+                                    : ''
+                            "
+                        >
+                            <li
+                                v-for="template in sectionTemplates[section] ||
+                                []"
+                                :key="template.id"
+                                class="flex items-center gap-2"
+                            >
+                                <input
+                                    type="checkbox"
+                                    :id="template.id"
+                                    :value="template.id"
+                                    v-model="selectedTemplates"
+                                />
+                                <label :for="template.id">{{
+                                    template.title
+                                }}</label>
+                            </li>
+                        </ul>
+
+                        <hr
+                            v-if="
+                                index < populatedSections.length - 1 &&
+                                templates.filter(
+                                    (template) =>
+                                        template.section !== 'Salutations'
+                                ).length > 0 &&
+                                hasCoreTemplates &&
+                                hasSalutations
+                            "
+                        />
+                    </section>
+                </div>
             </div>
             <section
                 v-if="
@@ -110,7 +116,7 @@
     </div>
 </template>
 
-<script>
+<script setup>
 import { ref, onMounted, computed } from "vue";
 import {
     loadTemplatesAndSections,
@@ -120,106 +126,82 @@ import {
 } from "../lib/utils.js";
 import Button from "../components/Button.vue";
 
-export default {
-    components: {
-        Button,
-    },
-    emits: ["navigate", "generate"],
-    setup(_, { emit }) {
-        const templates = ref([]);
-        const sections = ref([]);
-        const selectedTemplates = ref([]);
+const emit = defineEmits(["navigate", "generate"]);
 
-        onMounted(async () => {
-            const { templates: t, sections: s } =
-                await loadTemplatesAndSections();
-            templates.value = t;
-            sections.value = s;
-        });
+const templates = ref([]);
+const sections = ref([]);
+const selectedTemplates = ref([]);
 
-        const orderedSections = computed(() => {
-            return populatedSections.value
-                .filter((s) => s !== "Uncategorized Templates")
-                .concat(
-                    populatedSections.value.includes("Uncategorized Templates")
-                        ? ["Uncategorized Templates"]
-                        : []
-                );
-        });
+onMounted(async () => {
+    const { templates: t, sections: s } = await loadTemplatesAndSections();
+    templates.value = t;
+    sections.value = s;
+});
 
-        const proceedToGenerateEmail = () => {
-            const selected = templates.value.filter((t) =>
-                selectedTemplates.value.includes(t.id)
-            );
+const orderedSections = computed(() => {
+    return populatedSections.value
+        .filter((s) => s !== "Uncategorized Templates")
+        .concat(
+            populatedSections.value.includes("Uncategorized Templates")
+                ? ["Uncategorized Templates"]
+                : []
+        );
+});
 
-            if (greetingTemplate.value)
-                selected.unshift(greetingTemplate.value);
-            if (signOffTemplate.value) selected.push(signOffTemplate.value);
+const proceedToGenerateEmail = () => {
+    const selected = templates.value.filter((t) =>
+        selectedTemplates.value.includes(t.id)
+    );
 
-            emit("generate", selected);
-            emit("navigate", "emailEditor");
-        };
+    if (greetingTemplate.value) selected.unshift(greetingTemplate.value);
+    if (signOffTemplate.value) selected.push(signOffTemplate.value);
 
-        const sectionTemplates = computed(() => {
-            const grouped = {};
-            for (const template of templates.value) {
-                const key =
-                    template.section?.trim() || "Uncategorized Templates";
-                if (!grouped[key]) grouped[key] = [];
-                grouped[key].push(template);
-            }
-            return grouped;
-        });
-
-        const greetingTemplate = computed(() => {
-            return getGreeting(templates.value);
-        });
-
-        const signOffTemplate = computed(() => {
-            return getSignOff(templates.value);
-        });
-
-        const hasCoreTemplates = computed(() => {
-            return getNonSalutations(templates.value);
-        });
-
-        const hasSalutations = computed(() => {
-            return !!greetingTemplate.value && !!signOffTemplate.value;
-        });
-
-        const populatedSections = computed(() => {
-            const grouped = {};
-
-            for (const t of templates.value) {
-                const key = t.section?.trim() || "Uncategorized Templates";
-                if (key === "Salutations") continue;
-                if (!grouped[key]) grouped[key] = [];
-                grouped[key].push(t);
-            }
-
-            return Object.keys(grouped);
-        });
-
-        const disableNext = computed(() => {
-            return selectedTemplates.value.length == 0;
-        });
-
-        return {
-            templates,
-            sections,
-            selectedTemplates,
-            disableNext,
-            populatedSections,
-            sectionTemplates,
-            greetingTemplate,
-            signOffTemplate,
-            hasCoreTemplates,
-            hasSalutations,
-            proceedToGenerateEmail,
-            orderedSections,
-        };
-    },
+    emit("generate", selected);
+    emit("navigate", "emailEditor");
 };
+
+const sectionTemplates = computed(() => {
+    const grouped = {};
+    for (const template of templates.value) {
+        const key = template.section?.trim() || "Uncategorized Templates";
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(template);
+    }
+    return grouped;
+});
+
+const greetingTemplate = computed(() => {
+    return getGreeting(templates.value);
+});
+
+const signOffTemplate = computed(() => {
+    return getSignOff(templates.value);
+});
+
+const hasCoreTemplates = computed(() => {
+    return getNonSalutations(templates.value);
+});
+
+const hasSalutations = computed(() => {
+    return !!greetingTemplate.value && !!signOffTemplate.value;
+});
+
+const populatedSections = computed(() => {
+    const grouped = {};
+
+    for (const t of templates.value) {
+        const key = t.section?.trim() || "Uncategorized Templates";
+        if (key === "Salutations") continue;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(t);
+    }
+
+    return Object.keys(grouped);
+});
+
+const disableNext = computed(() => {
+    return selectedTemplates.value.length == 0;
+});
 </script>
 
 <style scoped></style>

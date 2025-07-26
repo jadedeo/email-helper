@@ -275,7 +275,7 @@
     </Modal>
 </template>
 
-<script>
+<script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { saveAs } from "file-saver";
 import {
@@ -297,435 +297,352 @@ import Button from "../components/Button.vue";
 import InfoBox from "../components/InfoBox.vue";
 import Modal from "../components/Modal.vue";
 
-export default {
-    components: {
-        Button,
-        InfoBox,
-        draggable,
-        CloudUploadIcon,
-        PlusIcon,
-        TextBoxMultipleIcon,
-        DragVerticalIcon,
-        PencilOutlineIcon,
-        DeleteOutlineIcon,
-        Modal,
+const props = defineProps({
+    templateToEdit: {
+        type: Object,
+        default: null,
     },
-
-    props: {
-        templateToEdit: {
-            type: Object,
-            default: null,
-        },
-        currentView: {
-            type: String,
-            default: null,
-        },
+    currentView: {
+        type: String,
+        default: null,
     },
-    emits: ["edit-template"],
-    setup(props, { emit }) {
-        const templates = ref([]);
-        const sections = ref([]);
-        const newSection = ref("");
-        const displaySectionField = ref(false);
-        const hoveredSection = ref(null);
-        const focusedSection = ref(null);
-        let displayDeleteSection = ref(false);
-        let templatesJSON = ref(null);
-        let file = ref(null);
-        const isModalOpen = ref(false);
-        const isLoading = ref(true);
+});
 
-        const modalActions = [
-            {
-                label: "Delete eection",
-                onClick: () => {
-                    console.log("delete this section");
-                    isModalOpen.value = false;
-                },
-                variant: "link",
-            },
-            {
-                label: "Delete section and templates",
-                onClick: () => {
-                    console.log("delete this section AND templates");
-                    isModalOpen.value = false;
-                },
-                variant: "filled",
-            },
-        ];
+const emit = defineEmits(["edit-template"]);
 
-        const loadTemplates = async () => {
-            isLoading.value = true;
+const templates = ref([]);
+const sections = ref([]);
+const newSection = ref("");
+const displaySectionField = ref(false);
+const hoveredSection = ref(null);
+const focusedSection = ref(null);
+let displayDeleteSection = ref(false);
+let templatesJSON = ref(null);
+let file = ref(null);
+const isModalOpen = ref(false);
+const isLoading = ref(true);
 
-            const [{ templates: t, sections: s }] = await Promise.all([
-                loadTemplatesAndSections(),
-                new Promise((resolve) => setTimeout(resolve, 300)), // forced delay to prevent flashing
-            ]);
+const modalActions = [
+    {
+        label: "Delete eection",
+        onClick: () => {
+            console.log("delete this section");
+            isModalOpen.value = false;
+        },
+        variant: "link",
+    },
+    {
+        label: "Delete section and templates",
+        onClick: () => {
+            console.log("delete this section AND templates");
+            isModalOpen.value = false;
+        },
+        variant: "filled",
+    },
+];
 
-            templates.value = t;
-            sections.value = s;
-            isLoading.value = false;
-        };
+const loadTemplates = async () => {
+    isLoading.value = true;
 
-        onMounted(async () => {
-            loadTemplates();
-        });
+    const [{ templates: t, sections: s }] = await Promise.all([
+        loadTemplatesAndSections(),
+        new Promise((resolve) => setTimeout(resolve, 300)), // forced delay to prevent flashing
+    ]);
 
-        watch(
-            () => props.currentView,
-            (newVal) => {
-                if (newVal === "templates") loadTemplates();
+    templates.value = t;
+    sections.value = s;
+    isLoading.value = false;
+};
+
+onMounted(async () => {
+    loadTemplates();
+});
+
+watch(
+    () => props.currentView,
+    (newVal) => {
+        if (newVal === "templates") loadTemplates();
+    }
+);
+
+const triggerFileInput = () => {
+    file.value?.click();
+};
+
+const onDragChange = (event, newSectionName) => {
+    const { added, moved } = event;
+    if (added || moved) {
+        if (added) {
+            const movedTemplate = added.element;
+            const match = templates.value.find(
+                (t) => t.id === movedTemplate.id
+            );
+            if (match) {
+                match.section = newSectionName;
             }
+        }
+
+        const updated = [];
+        for (const [section, templateList] of Object.entries(
+            sectionTemplates.value
+        )) {
+            for (const template of templateList) {
+                updated.push({ ...template });
+            }
+        }
+
+        templates.value = updated;
+        chrome.storage.local.set({ templates: updated });
+    }
+};
+
+const greetingTemplate = computed(() => {
+    return getGreeting(templates.value);
+});
+
+const signOffTemplate = computed(() => {
+    return getSignOff(templates.value);
+});
+
+const hasCoreTemplates = computed(() => {
+    return getNonSalutations(templates.value);
+});
+
+const sectionTemplates = computed(() => {
+    const grouped = {};
+
+    for (const section of sections.value) {
+        grouped[section] = [];
+    }
+
+    for (const template of templates.value) {
+        const key = template.section?.trim() || "Uncategorized Templates";
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(template);
+    }
+
+    return grouped;
+});
+
+const orderedSections = computed(() => {
+    return sections.value
+        .filter((s) => s !== "Salutations" && s !== "Uncategorized Templates")
+        .concat(
+            sections.value.includes("Uncategorized Templates")
+                ? ["Uncategorized Templates"]
+                : []
+        );
+});
+
+const openTemplateEditorPage = (
+    template = null,
+    title = null,
+    section = null
+) => {
+    emit("edit-template", {
+        id: template?.id || null,
+        title: template?.title || title || "",
+        body: template?.body || "",
+        section: template?.section || section || "Uncategorized Templates",
+    });
+};
+
+const addSection = () => {
+    displaySectionField.value = !displaySectionField.value;
+};
+
+const createSection = () => {
+    const cleanName = newSection.value.trim();
+
+    // TODO: replace alerts with error messaging at field
+    if (!Array.isArray(sections.value)) {
+        console.error("sections.value is not an array:", sections.value);
+        alert("There was an error saving the section. Please try again.");
+        return;
+    }
+
+    if (sections.value.includes(cleanName)) {
+        alert("That section already exists.");
+        return;
+    }
+
+    const updatedSections = [...sections.value, cleanName];
+    sections.value = updatedSections;
+    chrome.storage.local.set({ sections: updatedSections });
+
+    newSection.value = "";
+    displaySectionField.value = false;
+};
+
+const cancelAddSection = () => {
+    newSection.value = "";
+    displaySectionField.value = false;
+};
+const disableCreateSection = computed(function () {
+    return displaySectionField && newSection.value.trim() === "";
+});
+
+const handleExportTemplates = () => {
+    console.log("received array:");
+    console.log(templates.value);
+    templatesJSON = JSON.stringify(templates.value);
+    console.log("created JSON:");
+    console.log(templatesJSON);
+
+    const blob = new Blob([templatesJSON], {
+        type: "application/json",
+    });
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+
+    saveAs(
+        blob,
+        `mytemplates-${year}-${month}-${day}_${hours}-${minutes}-${seconds}.json`
+    );
+};
+
+// TODO: add error checking for invalid formats/contents
+const handleImportTemplates = () => {
+    const selectedFile = file.value?.files?.[0];
+    if (!selectedFile) return;
+
+    const reader = new FileReader();
+
+    try {
+        reader.readAsText(selectedFile);
+
+        reader.onload = (res) => {
+            const parsed = JSON.parse(res.target.result);
+            const importedTemplates = Array.isArray(parsed) ? parsed : [];
+
+            const templatesWithNewIds = importedTemplates.map((template) => ({
+                ...template,
+                id: crypto.randomUUID(),
+            }));
+
+            chrome.storage.local.get(["templates"], (result) => {
+                const existingTemplates = result.templates || [];
+
+                const filteredTemplates = existingTemplates.filter(
+                    (t) =>
+                        !(
+                            t.section === "Salutations" &&
+                            (t.title === "Greeting" || t.title === "Sign-off")
+                        )
+                );
+
+                const mergedTemplates = [
+                    ...filteredTemplates,
+                    ...templatesWithNewIds,
+                ];
+
+                const newSections = [
+                    ...new Set(
+                        mergedTemplates.map(
+                            (t) =>
+                                t.section?.trim() || "Uncategorized Templates"
+                        )
+                    ),
+                ];
+
+                chrome.storage.local.set({ templates: mergedTemplates }, () => {
+                    chrome.storage.local.set({ sections: newSections }, () => {
+                        templates.value = mergedTemplates;
+                        sections.value = newSections;
+
+                        updateDefaultInputsFromUploadedTemplates(
+                            templatesWithNewIds
+                        );
+                        loadTemplates();
+                    });
+                });
+            });
+        };
+    } catch (error) {
+        console.error("failed to import templates:", error);
+    }
+};
+
+const handleSectionHover = (sectionName) => {
+    hoveredSection.value = sectionName;
+    focusedSection.value = sectionName;
+};
+
+const clearHoveredSection = () => {
+    hoveredSection.value = null;
+};
+
+const handleDeleteSection = () => {
+    console.log("fire delete modal", isModalOpen.value);
+    isModalOpen.value = !isModalOpen.value;
+    console.log("fire delete modal", isModalOpen.value);
+};
+
+const handleConfirmDeleteSectionWithTemplates = () => {
+    const sectionToDelete = focusedSection.value;
+
+    chrome.storage.local.get(["templates"], (result) => {
+        const existingTemplates = result.templates || [];
+
+        const updatedTemplates = existingTemplates.filter(
+            (t) => t.section !== sectionToDelete
         );
 
-        const triggerFileInput = () => {
-            file.value?.click();
-        };
+        chrome.storage.local.set({ templates: updatedTemplates }, () => {
+            chrome.storage.local.get(["sections"], (result) => {
+                const existingSections = result.sections || [];
 
-        const onDragChange = (event, newSectionName) => {
-            const { added, moved } = event;
-            if (added || moved) {
-                if (added) {
-                    const movedTemplate = added.element;
-                    const match = templates.value.find(
-                        (t) => t.id === movedTemplate.id
-                    );
-                    if (match) {
-                        match.section = newSectionName;
-                    }
-                }
-
-                const updated = [];
-                for (const [section, templateList] of Object.entries(
-                    sectionTemplates.value
-                )) {
-                    for (const template of templateList) {
-                        updated.push({ ...template });
-                    }
-                }
-
-                templates.value = updated;
-                chrome.storage.local.set({ templates: updated });
-            }
-        };
-
-        const greetingTemplate = computed(() => {
-            return getGreeting(templates.value);
-        });
-
-        const signOffTemplate = computed(() => {
-            return getSignOff(templates.value);
-        });
-
-        const hasCoreTemplates = computed(() => {
-            return getNonSalutations(templates.value);
-        });
-
-        const sectionTemplates = computed(() => {
-            const grouped = {};
-
-            for (const section of sections.value) {
-                grouped[section] = [];
-            }
-
-            for (const template of templates.value) {
-                const key =
-                    template.section?.trim() || "Uncategorized Templates";
-                if (!grouped[key]) grouped[key] = [];
-                grouped[key].push(template);
-            }
-
-            return grouped;
-        });
-
-        const orderedSections = computed(() => {
-            return sections.value
-                .filter(
-                    (s) =>
-                        s !== "Salutations" && s !== "Uncategorized Templates"
-                )
-                .concat(
-                    sections.value.includes("Uncategorized Templates")
-                        ? ["Uncategorized Templates"]
-                        : []
+                const updatedSections = existingSections.filter(
+                    (s) => s !== sectionToDelete
                 );
-        });
 
-        const openTemplateEditorPage = (
-            template = null,
-            title = null,
-            section = null
-        ) => {
-            emit("edit-template", {
-                id: template?.id || null,
-                title: template?.title || title || "",
-                body: template?.body || "",
-                section:
-                    template?.section || section || "Uncategorized Templates",
+                chrome.storage.local.set({ sections: updatedSections }, () => {
+                    isModalOpen.value = false;
+                    focusedSection.value = null;
+                    loadTemplates();
+                    // emit("close");
+                });
             });
-        };
-
-        const addSection = () => {
-            displaySectionField.value = !displaySectionField.value;
-        };
-
-        const createSection = () => {
-            const cleanName = newSection.value.trim();
-
-            // TODO: replace alerts with error messaging at field
-            if (!Array.isArray(sections.value)) {
-                console.error(
-                    "sections.value is not an array:",
-                    sections.value
-                );
-                alert(
-                    "There was an error saving the section. Please try again."
-                );
-                return;
-            }
-
-            if (sections.value.includes(cleanName)) {
-                alert("That section already exists.");
-                return;
-            }
-
-            const updatedSections = [...sections.value, cleanName];
-            sections.value = updatedSections;
-            chrome.storage.local.set({ sections: updatedSections });
-
-            newSection.value = "";
-            displaySectionField.value = false;
-        };
-
-        const cancelAddSection = () => {
-            newSection.value = "";
-            displaySectionField.value = false;
-        };
-        const disableCreateSection = computed(function () {
-            return displaySectionField && newSection.value.trim() === "";
         });
+    });
+};
 
-        const handleExportTemplates = () => {
-            console.log("received array:");
-            console.log(templates.value);
-            templatesJSON = JSON.stringify(templates.value);
-            console.log("created JSON:");
-            console.log(templatesJSON);
+const handleConfirmDeleteSection = () => {
+    const sectionToDelete = focusedSection.value;
 
-            const blob = new Blob([templatesJSON], {
-                type: "application/json",
+    chrome.storage.local.get(["templates"], (result) => {
+        const existingTemplates = result.templates || [];
+
+        const updatedTemplates = existingTemplates.map((t) =>
+            t.section === sectionToDelete
+                ? { ...t, section: "Uncategorized Templates" }
+                : t
+        );
+
+        chrome.storage.local.set({ templates: updatedTemplates }, () => {
+            chrome.storage.local.get(["sections"], (result) => {
+                const existingSections = result.sections || [];
+
+                const updatedSections = existingSections.filter(
+                    (s) => s !== sectionToDelete
+                );
+
+                chrome.storage.local.set({ sections: updatedSections }, () => {
+                    isModalOpen.value = false;
+                    focusedSection.value = null;
+                    loadTemplates();
+                    // emit("navigate-to-templates-tab");
+                    // emit("close");
+                });
             });
-
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, "0");
-            const day = String(now.getDate()).padStart(2, "0");
-            const hours = String(now.getHours()).padStart(2, "0");
-            const minutes = String(now.getMinutes()).padStart(2, "0");
-            const seconds = String(now.getSeconds()).padStart(2, "0");
-
-            saveAs(
-                blob,
-                `mytemplates-${year}-${month}-${day}_${hours}-${minutes}-${seconds}.json`
-            );
-        };
-
-        // TODO: add error checking for invalid formats/contents
-        const handleImportTemplates = () => {
-            const selectedFile = file.value?.files?.[0];
-            if (!selectedFile) return;
-
-            const reader = new FileReader();
-
-            try {
-                reader.readAsText(selectedFile);
-
-                reader.onload = (res) => {
-                    const parsed = JSON.parse(res.target.result);
-                    const importedTemplates = Array.isArray(parsed)
-                        ? parsed
-                        : [];
-
-                    const templatesWithNewIds = importedTemplates.map(
-                        (template) => ({
-                            ...template,
-                            id: crypto.randomUUID(),
-                        })
-                    );
-
-                    chrome.storage.local.get(["templates"], (result) => {
-                        const existingTemplates = result.templates || [];
-
-                        const filteredTemplates = existingTemplates.filter(
-                            (t) =>
-                                !(
-                                    t.section === "Salutations" &&
-                                    (t.title === "Greeting" ||
-                                        t.title === "Sign-off")
-                                )
-                        );
-
-                        const mergedTemplates = [
-                            ...filteredTemplates,
-                            ...templatesWithNewIds,
-                        ];
-
-                        const newSections = [
-                            ...new Set(
-                                mergedTemplates.map(
-                                    (t) =>
-                                        t.section?.trim() ||
-                                        "Uncategorized Templates"
-                                )
-                            ),
-                        ];
-
-                        chrome.storage.local.set(
-                            { templates: mergedTemplates },
-                            () => {
-                                chrome.storage.local.set(
-                                    { sections: newSections },
-                                    () => {
-                                        templates.value = mergedTemplates;
-                                        sections.value = newSections;
-
-                                        updateDefaultInputsFromUploadedTemplates(
-                                            templatesWithNewIds
-                                        );
-                                        loadTemplates();
-                                    }
-                                );
-                            }
-                        );
-                    });
-                };
-            } catch (error) {
-                console.error("failed to import templates:", error);
-            }
-        };
-
-        const handleSectionHover = (sectionName) => {
-            hoveredSection.value = sectionName;
-            focusedSection.value = sectionName;
-        };
-
-        const clearHoveredSection = () => {
-            hoveredSection.value = null;
-        };
-
-        const handleDeleteSection = () => {
-            console.log("fire delete modal", isModalOpen.value);
-            isModalOpen.value = !isModalOpen.value;
-            console.log("fire delete modal", isModalOpen.value);
-        };
-
-        const handleConfirmDeleteSectionWithTemplates = () => {
-            const sectionToDelete = focusedSection.value;
-
-            chrome.storage.local.get(["templates"], (result) => {
-                const existingTemplates = result.templates || [];
-
-                const updatedTemplates = existingTemplates.filter(
-                    (t) => t.section !== sectionToDelete
-                );
-
-                chrome.storage.local.set(
-                    { templates: updatedTemplates },
-                    () => {
-                        chrome.storage.local.get(["sections"], (result) => {
-                            const existingSections = result.sections || [];
-
-                            const updatedSections = existingSections.filter(
-                                (s) => s !== sectionToDelete
-                            );
-
-                            chrome.storage.local.set(
-                                { sections: updatedSections },
-                                () => {
-                                    isModalOpen.value = false;
-                                    focusedSection.value = null;
-                                    loadTemplates();
-                                    emit("close");
-                                }
-                            );
-                        });
-                    }
-                );
-            });
-        };
-
-        const handleConfirmDeleteSection = () => {
-            const sectionToDelete = focusedSection.value;
-
-            chrome.storage.local.get(["templates"], (result) => {
-                const existingTemplates = result.templates || [];
-
-                const updatedTemplates = existingTemplates.map((t) =>
-                    t.section === sectionToDelete
-                        ? { ...t, section: "Uncategorized Templates" }
-                        : t
-                );
-
-                chrome.storage.local.set(
-                    { templates: updatedTemplates },
-                    () => {
-                        chrome.storage.local.get(["sections"], (result) => {
-                            const existingSections = result.sections || [];
-
-                            const updatedSections = existingSections.filter(
-                                (s) => s !== sectionToDelete
-                            );
-
-                            chrome.storage.local.set(
-                                { sections: updatedSections },
-                                () => {
-                                    isModalOpen.value = false;
-                                    focusedSection.value = null;
-                                    loadTemplates();
-                                    emit("close");
-                                }
-                            );
-                        });
-                    }
-                );
-            });
-        };
-
-        return {
-            templates,
-            sections,
-            newSection,
-            addSection,
-            createSection,
-            disableCreateSection,
-            displaySectionField,
-            cancelAddSection,
-            openTemplateEditorPage,
-            sectionTemplates,
-            onDragChange,
-            greetingTemplate,
-            signOffTemplate,
-            handleExportTemplates,
-            handleImportTemplates,
-            templatesJSON,
-            file,
-            orderedSections,
-            displayDeleteSection,
-            handleSectionHover,
-            clearHoveredSection,
-            hoveredSection,
-            handleDeleteSection,
-            isModalOpen,
-            modalActions,
-            handleConfirmDeleteSectionWithTemplates,
-            handleConfirmDeleteSection,
-            focusedSection,
-            triggerFileInput,
-            updateDefaultInputsFromUploadedTemplates,
-            isLoading,
-            hasCoreTemplates,
-        };
-    },
+        });
+    });
 };
 </script>
 

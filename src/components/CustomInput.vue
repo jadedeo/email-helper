@@ -54,84 +54,64 @@
     </node-view-wrapper>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted } from "vue";
 import { nodeViewProps, NodeViewWrapper } from "@tiptap/vue-3";
 
 import TextIcon from "vue-material-design-icons/Text.vue";
 import Button from "./Button.vue";
 
-export default {
-    props: nodeViewProps,
-    components: {
-        NodeViewWrapper,
-        Button,
-        TextIcon,
-    },
-    setup(props) {
-        const inputValue = ref(props.node.attrs.label || "");
-        const isEditing = ref(!props.node.attrs.label);
-        const defaultInputOptions = ref([]);
+const props = defineProps({ nodeViewProps });
 
-        onMounted(() => {
-            chrome.storage.local.get(["defaultInputOptions"], (result) => {
-                defaultInputOptions.value = Array.isArray(
-                    result.defaultInputOptions
-                )
-                    ? result.defaultInputOptions
-                    : [];
-            });
-        });
+const inputValue = ref(props.node.attrs.label || "");
+const isEditing = ref(!props.node.attrs.label);
+const defaultInputOptions = ref([]);
 
-        const filteredOptions = computed(() => {
-            const query = inputValue.value.trim().toLowerCase();
-            if (!query) return defaultInputOptions.value;
-            return defaultInputOptions.value.filter((opt) =>
-                opt.toLowerCase().includes(query)
-            );
-        });
+onMounted(() => {
+    chrome.storage.local.get(["defaultInputOptions"], (result) => {
+        defaultInputOptions.value = Array.isArray(result.defaultInputOptions)
+            ? result.defaultInputOptions
+            : [];
+    });
+});
 
-        const selectOption = (name) => {
-            inputValue.value = name;
-        };
+const filteredOptions = computed(() => {
+    const query = inputValue.value.trim().toLowerCase();
+    if (!query) return defaultInputOptions.value;
+    return defaultInputOptions.value.filter((opt) =>
+        opt.toLowerCase().includes(query)
+    );
+});
 
-        const apply = () => {
-            const trimmed = inputValue.value.trim();
+const selectOption = (name) => {
+    inputValue.value = name;
+};
 
-            // block empty labels
-            if (!trimmed) return;
-            props.updateAttributes({ label: trimmed });
-            updateDefaultCustomInputs(trimmed);
-            isEditing.value = false;
-        };
+const apply = () => {
+    const trimmed = inputValue.value.trim();
 
-        const updateDefaultCustomInputs = (newInput) => {
-            chrome.storage.local.get(["defaultInputOptions"], (result) => {
-                const options = Array.isArray(result.defaultInputOptions)
-                    ? result.defaultInputOptions
-                    : [];
+    // block empty labels
+    if (!trimmed) return;
+    props.updateAttributes({ label: trimmed });
+    updateDefaultCustomInputs(trimmed);
+    isEditing.value = false;
+};
 
-                // dont add newinput if already present in defaults list
-                if (options.includes(newInput)) {
-                    // console.log("input already exists.");
-                    return;
-                }
+const updateDefaultCustomInputs = (newInput) => {
+    chrome.storage.local.get(["defaultInputOptions"], (result) => {
+        const options = Array.isArray(result.defaultInputOptions)
+            ? result.defaultInputOptions
+            : [];
 
-                const updated = [...options, newInput];
-                chrome.storage.local.set({ defaultInputOptions: updated });
-            });
-        };
+        // dont add newinput if already present in defaults list
+        if (options.includes(newInput)) {
+            // console.log("input already exists.");
+            return;
+        }
 
-        return {
-            filteredOptions,
-            selectOption,
-            inputValue,
-            isEditing,
-            apply,
-            updateDefaultCustomInputs,
-            defaultInputOptions,
-        };
-    },
+        const updated = [...options, newInput];
+        chrome.storage.local.set({ defaultInputOptions: updated });
+    });
 };
 </script>
 

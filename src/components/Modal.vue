@@ -38,25 +38,19 @@
     </Teleport>
 </template>
 
-<script>
+<script setup>
 import CloseIcon from "vue-material-design-icons/Close.vue";
-import Button from "../components/Button.vue";
-import DeleteOutlineIcon from "vue-material-design-icons/DeleteOutline.vue";
 
-export default {
-    components: { CloseIcon, DeleteOutlineIcon, Button },
-    props: {
-        title: { type: String, default: "Modal Title", required: true },
-        body: {
-            type: String,
-        },
+const props = defineProps({
+    title: { type: String, default: "Modal Title", required: true },
+    body: {
+        type: String,
     },
-    emits: ["close"],
-    setup(_, { emit }) {
-        const closeModal = () => emit("close");
-        return { closeModal };
-    },
-};
+});
+
+const emit = defineEmits(["close"]);
+
+const closeModal = () => emit("close");
 </script>
 
 <style scoped>

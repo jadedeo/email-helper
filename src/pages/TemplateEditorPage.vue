@@ -90,7 +90,7 @@
     </Modal>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted } from "vue";
 import { removeEmptyCustomInputs } from "../lib/utils.js";
 import DeleteOutlineIcon from "vue-material-design-icons/DeleteOutline.vue";
@@ -100,197 +100,158 @@ import Button from "../components/Button.vue";
 import InfoBox from "../components/InfoBox.vue";
 import Modal from "../components/Modal.vue";
 
-export default {
-    components: {
-        Editor,
-        Button,
-        DeleteOutlineIcon,
-        InfoBox,
-        Modal,
+const emit = defineEmits(["close"]);
+const props = defineProps({
+    templateToEdit: {
+        type: Object,
+        default: null,
     },
-    emits: ["close"],
-    props: {
-        templateToEdit: {
-            type: Object,
-            default: null,
-        },
-    },
-    setup(props, { emit }) {
-        const templateTitle = ref("");
-        const templateBody = ref("");
-        const isEditingTemplate = ref(false);
-        const originalTemplate = ref(null);
-        const section = ref("Uncategorized Templates");
-        const showInfoBox = ref(true);
-        const isModalOpen = ref(false);
-        const modalType = ref("");
+});
 
-        onMounted(() => {
-            if (props.templateToEdit) {
-                originalTemplate.value = props.templateToEdit;
-                templateTitle.value = props.templateToEdit.title || "";
-                templateBody.value = props.templateToEdit.body || "";
-                section.value =
-                    props.templateToEdit.section || "Uncategorized Templates";
-                isEditingTemplate.value = !!(
-                    props.templateToEdit.title && props.templateToEdit.body
-                );
-            }
+const templateTitle = ref("");
+const templateBody = ref("");
+const isEditingTemplate = ref(false);
+const originalTemplate = ref(null);
+const section = ref("Uncategorized Templates");
+const showInfoBox = ref(true);
+const isModalOpen = ref(false);
+const modalType = ref("");
+
+onMounted(() => {
+    if (props.templateToEdit) {
+        originalTemplate.value = props.templateToEdit;
+        templateTitle.value = props.templateToEdit.title || "";
+        templateBody.value = props.templateToEdit.body || "";
+        section.value =
+            props.templateToEdit.section || "Uncategorized Templates";
+        isEditingTemplate.value = !!(
+            props.templateToEdit.title && props.templateToEdit.body
+        );
+    }
+});
+
+const saveTemplate = () => {
+    if (
+        !originalTemplate.value ||
+        !originalTemplate.value.id ||
+        typeof chrome === "undefined" ||
+        !chrome.storage
+    ) {
+        console.error("Invalid original template or missing Chrome APIs.");
+        return;
+    }
+
+    // before saving template, remove any empty <custom-input>'s aka. inputs that don't have a label
+    templateBody.value = removeEmptyCustomInputs(templateBody.value.trim());
+
+    const updatedTemplate = {
+        id: originalTemplate.value.id,
+        title: templateTitle.value.trim(),
+        body: templateBody.value.trim(),
+        section: section.value,
+    };
+
+    chrome.storage.local.get(["templates"], (result) => {
+        const existing = result.templates || [];
+
+        const updatedTemplates = existing.map((t) =>
+            t.id === updatedTemplate.id ? updatedTemplate : t
+        );
+
+        chrome.storage.local.set({ templates: updatedTemplates });
+    });
+
+    emit("navigate-to-templates-tab");
+};
+
+const createTemplate = () => {
+    if (typeof chrome === "undefined" || !chrome.storage) {
+        console.error("Chrome storage is not available.");
+        return;
+    }
+
+    templateBody.value = removeEmptyCustomInputs(templateBody.value.trim());
+
+    const newTemplate = {
+        id: crypto.randomUUID(),
+        title: templateTitle.value.trim(),
+        body: templateBody.value.trim(),
+        section: section.value,
+    };
+
+    chrome.storage.local.get(["templates"], (result) => {
+        const existing = result.templates || [];
+        existing.push(newTemplate);
+        chrome.storage.local.set({ templates: existing });
+    });
+
+    emit("navigate-to-templates-tab");
+    // emit("close");
+};
+
+const disableCreateTemplate = computed(function () {
+    return (
+        templateTitle.value.trim() === "" || templateBody.value.trim() === ""
+    );
+});
+
+const handleDeleteTemplate = () => {
+    modalType.value = "delete";
+    isModalOpen.value = true;
+};
+
+const hasUnsavedChanges = computed(() => {
+    if (!originalTemplate.value) return false;
+
+    const titleChanged =
+        originalTemplate.value.title !== templateTitle.value.trim();
+    const bodyChanged =
+        originalTemplate.value.body !== templateBody.value.trim();
+
+    return titleChanged || bodyChanged;
+});
+
+const handleCancelEditing = () => {
+    if (!hasUnsavedChanges.value) {
+        emit("navigate-to-templates-tab");
+
+        // emit("close");
+    } else {
+        modalType.value = "exitWithoutSaving";
+        isModalOpen.value = true;
+    }
+};
+
+const handleDiscardChanges = () => {
+    modalType.value = "";
+    emit("navigate-to-templates-tab");
+
+    // emit("close");
+};
+
+const handleConfirmDeleteTemplate = () => {
+    if (!props.templateToEdit?.id) {
+        console.error("No template to delete.");
+        return;
+    }
+
+    const templateToDelete = props.templateToEdit.id;
+
+    chrome.storage.local.get(["templates"], (result) => {
+        const existingTemplates = result.templates || [];
+
+        const updatedTemplates = existingTemplates.filter(
+            (template) => template.id !== templateToDelete
+        );
+
+        chrome.storage.local.set({ templates: updatedTemplates }, () => {
+            console.log("Template deleted.");
         });
+    });
 
-        const clearTemplateToEdit = () => {
-            chrome.storage.session.remove("templateToEdit");
-        };
-
-        const saveTemplate = () => {
-            if (
-                !originalTemplate.value ||
-                !originalTemplate.value.id ||
-                typeof chrome === "undefined" ||
-                !chrome.storage
-            ) {
-                console.error(
-                    "Invalid original template or missing Chrome APIs."
-                );
-                return;
-            }
-
-            // before saving template, remove any empty <custom-input>'s aka. inputs that don't have a label
-            templateBody.value = removeEmptyCustomInputs(
-                templateBody.value.trim()
-            );
-
-            const updatedTemplate = {
-                id: originalTemplate.value.id,
-                title: templateTitle.value.trim(),
-                body: templateBody.value.trim(),
-                section: section.value,
-            };
-
-            chrome.storage.local.get(["templates"], (result) => {
-                const existing = result.templates || [];
-
-                const updatedTemplates = existing.map((t) =>
-                    t.id === updatedTemplate.id ? updatedTemplate : t
-                );
-
-                chrome.storage.local.set({ templates: updatedTemplates });
-            });
-
-            emit("load-templates");
-        };
-
-        const createTemplate = () => {
-            if (typeof chrome === "undefined" || !chrome.storage) {
-                console.error("Chrome storage is not available.");
-                return;
-            }
-
-            templateBody.value = removeEmptyCustomInputs(
-                templateBody.value.trim()
-            );
-
-            const newTemplate = {
-                id: crypto.randomUUID(),
-                title: templateTitle.value.trim(),
-                body: templateBody.value.trim(),
-                section: section.value,
-            };
-
-            chrome.storage.local.get(["templates"], (result) => {
-                const existing = result.templates || [];
-                existing.push(newTemplate);
-                chrome.storage.local.set({ templates: existing });
-            });
-
-            emit("load-templates");
-            emit("close");
-        };
-
-        const disableCreateTemplate = computed(function () {
-            return (
-                templateTitle.value.trim() === "" ||
-                templateBody.value.trim() === ""
-            );
-        });
-
-        const handleDeleteTemplate = () => {
-            modalType.value = "delete";
-            isModalOpen.value = true;
-        };
-
-        const hasUnsavedChanges = computed(() => {
-            if (!originalTemplate.value) return false;
-
-            const titleChanged =
-                originalTemplate.value.title !== templateTitle.value.trim();
-            const bodyChanged =
-                originalTemplate.value.body !== templateBody.value.trim();
-
-            return titleChanged || bodyChanged;
-        });
-
-        const handleCancelEditing = () => {
-            if (!hasUnsavedChanges.value) {
-                emit("close");
-            } else {
-                modalType.value = "exitWithoutSaving";
-                isModalOpen.value = true;
-            }
-        };
-
-        const handleDiscardChanges = () => {
-            modalType.value = "";
-            emit("close");
-        };
-
-        const handleConfirmDeleteTemplate = () => {
-            if (!props.templateToEdit?.id) {
-                console.error("No template to delete.");
-                return;
-            }
-
-            const templateToDelete = props.templateToEdit.id;
-
-            chrome.storage.local.get(["templates"], (result) => {
-                const existingTemplates = result.templates || [];
-
-                const updatedTemplates = existingTemplates.filter(
-                    (template) => template.id !== templateToDelete
-                );
-
-                chrome.storage.local.set(
-                    { templates: updatedTemplates },
-                    () => {
-                        console.log("Template deleted.");
-                    }
-                );
-            });
-
-            isModalOpen.value = false;
-            modalType.value = "";
-            emit("load-templates");
-            emit("close");
-        };
-
-        return {
-            section,
-            templateTitle,
-            templateBody,
-            isEditingTemplate,
-            clearTemplateToEdit,
-            handleDeleteTemplate,
-            disableCreateTemplate,
-            saveTemplate,
-            createTemplate,
-            showInfoBox,
-            isModalOpen,
-            handleConfirmDeleteTemplate,
-            handleCancelEditing,
-            modalType,
-            handleDiscardChanges,
-            hasUnsavedChanges,
-        };
-    },
+    isModalOpen.value = false;
+    modalType.value = "";
+    emit("navigate-to-templates-tab");
+    // emit("close");
 };
 </script>
