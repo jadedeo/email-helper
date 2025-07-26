@@ -100,7 +100,12 @@
 
 <script>
 import { ref, onMounted, computed } from "vue";
-import { loadTemplatesAndSections } from "../lib/utils.js";
+import {
+    loadTemplatesAndSections,
+    getNonSalutations,
+    getGreeting,
+    getSignOff,
+} from "../lib/utils.js";
 import Button from "../components/Button.vue";
 
 export default {
@@ -154,24 +159,16 @@ export default {
             return grouped;
         });
 
-        const greetingTemplate = computed(() =>
-            templates.value.find(
-                (template) =>
-                    template.title === "Greeting" &&
-                    template.section === "Salutations"
-            )
-        );
+        const greetingTemplate = computed(() => {
+            return getGreeting(templates.value);
+        });
 
-        const signOffTemplate = computed(() =>
-            templates.value.find(
-                (template) =>
-                    template.title === "Sign-off" &&
-                    template.section === "Salutations"
-            )
-        );
+        const signOffTemplate = computed(() => {
+            return getSignOff(templates.value);
+        });
 
         const hasCoreTemplates = computed(() => {
-            return templates.value.some((t) => t.section !== "Salutations");
+            return getNonSalutations(templates.value);
         });
 
         const hasSalutations = computed(() => {

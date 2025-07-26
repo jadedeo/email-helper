@@ -242,14 +242,13 @@
                         />
                     </div>
 
-                    <!-- TODO: only display if has at least one template -->
-                    <!-- <Button
-                    v-if="!displaySectionField"
-                    label="Add section"
-                    variant="outlined"
-                    @button-click="addSection"
-                    ><PlusIcon :size="20"
-                /></Button> -->
+                    <Button
+                        v-if="!displaySectionField && hasCoreTemplates"
+                        label="Add section"
+                        variant="outlined"
+                        @button-click="addSection"
+                        ><PlusIcon :size="20"
+                    /></Button>
                 </section>
             </template>
         </div>
@@ -286,6 +285,9 @@ import { saveAs } from "file-saver";
 import {
     loadTemplatesAndSections,
     updateDefaultInputsFromUploadedTemplates,
+    getNonSalutations,
+    getGreeting,
+    getSignOff,
 } from "../lib/utils.js";
 
 import CloudUploadIcon from "vue-material-design-icons/CloudUploadOutline.vue";
@@ -384,27 +386,6 @@ export default {
             file.value?.click();
         };
 
-        // const loadTemplates = () => {
-        // chrome.storage.local.get(["templates", "sections"], (result) => {
-        //     templates.value = Array.isArray(result.templates)
-        //         ? result.templates
-        //         : [];
-
-        //     if (Array.isArray(result.sections)) {
-        //         sections.value = result.sections;
-        //     } else {
-        //         const sectionNames = new Set(
-        //             templates.value.map(
-        //                 (t) =>
-        //                     t.section?.trim() || "Uncategorized Templates"
-        //             )
-        //         );
-        //         sections.value = [...sectionNames];
-        //         chrome.storage.local.set({ sections: sections.value });
-        //     }
-        // });
-        // };
-
         const onDragChange = (event, newSectionName) => {
             const { added, moved } = event;
             if (added || moved) {
@@ -432,21 +413,17 @@ export default {
             }
         };
 
-        const greetingTemplate = computed(() =>
-            templates.value.find(
-                (template) =>
-                    template.title === "Greeting" &&
-                    template.section === "Salutations"
-            )
-        );
+        const greetingTemplate = computed(() => {
+            return getGreeting(templates.value);
+        });
 
-        const signOffTemplate = computed(() =>
-            templates.value.find(
-                (template) =>
-                    template.title === "Sign-off" &&
-                    template.section === "Salutations"
-            )
-        );
+        const signOffTemplate = computed(() => {
+            return getSignOff(templates.value);
+        });
+
+        const hasCoreTemplates = computed(() => {
+            return getNonSalutations(templates.value);
+        });
 
         const sectionTemplates = computed(() => {
             const grouped = {};
@@ -750,6 +727,7 @@ export default {
             triggerFileInput,
             updateDefaultInputsFromUploadedTemplates,
             isLoading,
+            hasCoreTemplates,
         };
     },
 };

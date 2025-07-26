@@ -1,5 +1,6 @@
 <!-- src/pages/GenerateEmailPage.vue -->
 <!-- TODO: add hr between templates, excluding salutations -->
+<!-- TODO: add back button -->
 <template>
     <div class="w-full bg-gray-100 py-3 px-6 flex flex-col gap-5 h-dvh">
         <div class="flex gap-3 flex-1 overflow-hidden">
@@ -71,7 +72,7 @@
                     <!-- TODO: make preview editable -->
                     <div
                         v-html="filledHTML"
-                        class="overflow-y-auto break-all wrap-break-word"
+                        class="overflow-y-auto wrap-normal"
                     ></div>
                 </section>
             </div>

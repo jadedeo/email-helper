@@ -1,6 +1,6 @@
 // src/lib/utils.js
 
-export function extractCustomInputLabels(html) {
+export const extractCustomInputLabels = (html) => {
     const matches = [
         ...html.matchAll(
             /<custom-input\s+label=["'](.*?)["']><\/custom-input>/gi
@@ -9,16 +9,16 @@ export function extractCustomInputLabels(html) {
     return matches
         .map((match) => match[1].trim())
         .filter((label) => label.length > 0);
-}
+};
 
-export function removeEmptyCustomInputs(html) {
+export const removeEmptyCustomInputs = (html) => {
     return html.replace(
         /<custom-input\s+label=["']{0,1}\s*["']{0,1}><\/custom-input>/gi,
         ""
     );
-}
+};
 
-export function loadTemplatesAndSections() {
+export const loadTemplatesAndSections = () => {
     return new Promise((resolve) => {
         chrome.storage.local.get(["templates", "sections"], (result) => {
             const templates = Array.isArray(result.templates)
@@ -42,9 +42,9 @@ export function loadTemplatesAndSections() {
             resolve({ templates, sections });
         });
     });
-}
+};
 
-export function initializeDefaultInputOptions(staticDefaults) {
+export const initializeDefaultInputOptions = (staticDefaults) => {
     return new Promise((resolve) => {
         chrome.storage.local.get(["defaultInputOptions"], (result) => {
             const existing = Array.isArray(result.defaultInputOptions)
@@ -57,9 +57,9 @@ export function initializeDefaultInputOptions(staticDefaults) {
             chrome.storage.local.set({ defaultInputOptions: merged }, resolve);
         });
     });
-}
+};
 
-export function updateDefaultInputsFromUploadedTemplates(templates = []) {
+export const updateDefaultInputsFromUploadedTemplates = (templates = []) => {
     const allBodies = templates.map((t) => t.body || "").join("\n");
     const extractedLabels = extractCustomInputLabels(allBodies);
 
@@ -78,4 +78,22 @@ export function updateDefaultInputsFromUploadedTemplates(templates = []) {
             });
         }
     });
-}
+};
+
+export const getNonSalutations = (templates) => {
+    return templates.some((t) => t.section !== "Salutations");
+};
+
+export const getGreeting = (templates) => {
+    return templates.find(
+        (template) =>
+            template.title === "Greeting" && template.section === "Salutations"
+    );
+};
+
+export const getSignOff = (templates) => {
+    return templates.find(
+        (template) =>
+            template.title === "Sign-off" && template.section === "Salutations"
+    );
+};
