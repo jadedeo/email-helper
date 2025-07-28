@@ -1,7 +1,7 @@
 <!-- components/InfoBox.vue -->
 <template>
     <div
-        class="bg-gray-50 p-3 flex flex-col gap-2 rounded-md border-1 border-solid border-gray-100"
+        class="infobox-component bg-gray-50 p-3 flex flex-col gap-2 rounded-md border-1 border-solid border-gray-100"
         :class="
             coloredBg
                 ? 'bg-lime-50 border-gray-200'

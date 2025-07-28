@@ -176,13 +176,27 @@ const createTemplate = () => {
         id: crypto.randomUUID(),
         title: templateTitle.value.trim(),
         body: templateBody.value.trim(),
-        section: section.value,
+        section: section.value || "Uncategorized Templates",
     };
 
-    chrome.storage.local.get(["templates"], (result) => {
-        const existing = result.templates || [];
-        existing.push(newTemplate);
-        chrome.storage.local.set({ templates: existing });
+    chrome.storage.local.get(["templates", "sections"], (result) => {
+        const existingTemplates = result.templates || [];
+        const existingSections = result.sections || [];
+
+        existingTemplates.push(newTemplate);
+
+        const cleanedSection =
+            newTemplate.section.trim() || "Uncategorized Templates";
+
+        // Only add if it doesn't exist already
+        if (!existingSections.includes(cleanedSection)) {
+            existingSections.push(cleanedSection);
+        }
+
+        chrome.storage.local.set({
+            templates: existingTemplates,
+            sections: existingSections,
+        });
     });
 
     emit("navigate-to-templates-tab");

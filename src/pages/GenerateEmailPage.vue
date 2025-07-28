@@ -1,5 +1,6 @@
 <!-- pages/GenerateEmailPage.vue -->
 <!-- TODO: add hr between templates, excluding salutations -->
+<!-- TODO: add input for permit number & connect to subject -->
 <template>
     <div class="w-full bg-gray-100 py-3 px-6 flex flex-col gap-3 h-dvh">
         <div class="flex gap-3 flex-1 overflow-hidden">
@@ -63,7 +64,7 @@
                             id="input-subject"
                             type="text"
                             placeholder="Subject"
-                            class="!border-none !p-0"
+                            class="!border-none !p-0 w-full"
                         />
                     </div>
 
@@ -137,7 +138,12 @@ const props = defineProps({
     },
 });
 
-const subject = ref("");
+const subject = computed(() => {
+    const permit = inputValues.value["Permit Number"];
+    return permit?.trim()
+        ? `SFRPD Follow-Up: Permit #${permit}`
+        : "SFRPD Follow-Up: Permit #";
+});
 
 let extractedHTML = ref("");
 const inputValues = ref({});
@@ -163,6 +169,8 @@ onMounted(() => {
     while ((match = placeholderRegex.exec(extractedHTML.value)) !== null) {
         uniqueLabels.add(match[1]);
     }
+
+    uniqueLabels.add("Permit Number");
 
     uniqueLabels.forEach((label) => {
         inputValues.value[label] = "";

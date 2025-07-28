@@ -2,12 +2,17 @@
 <template>
     <div
         class="flex justify-center bg-white min-h-[85%]"
-        :class="!hasCoreTemplates || !hasSalutations ? 'items-center' : ''"
+        :class="!hasCoreTemplates || !hasSalutations ? 'pt-[100px]' : ''"
     >
+        <!-- :class="!hasCoreTemplates || !hasSalutations ? 'items-center' : ''" -->
         <div
             class="flex flex-col gap-5 mb-6 max-w-[550px] w-full"
             :class="hasCoreTemplates && hasSalutations ? 'justify-between' : ''"
         >
+            <IconCircle v-if="!hasCoreTemplates || !hasSalutations">
+                <TextBoxMultipleIcon :size="50" />
+            </IconCircle>
+
             <section
                 v-if="!hasCoreTemplates"
                 class="flex flex-col px-6 text-center"
@@ -39,9 +44,12 @@
                         template.
                     </p>
                 </section>
-                <hr v-if="hasCoreTemplates && hasSalutations" />
+                <hr
+                    class="thisone-2"
+                    v-if="hasCoreTemplates && hasSalutations"
+                />
 
-                <div class="overflow-y-scroll flex flex-col gap-5">
+                <div class="flex flex-col gap-5">
                     <section
                         v-if="
                             orderedSections.length &&
@@ -82,6 +90,7 @@
                         </ul>
 
                         <hr
+                            class="thisone-1"
                             v-if="
                                 index < populatedSections.length - 1 &&
                                 templates.filter(
@@ -95,16 +104,11 @@
                     </section>
                 </div>
             </div>
-            <section
-                v-if="
-                    templates.filter(
-                        (template) => template.section !== 'Salutations'
-                    ).length > 0 &&
-                    hasCoreTemplates &&
-                    hasSalutations
-                "
-                class="px-6"
-            >
+            <!-- <hr
+                class="thisone-3"
+                v-if="hasCoreTemplates && hasSalutations && sections.length > 2"
+            /> -->
+            <section v-if="hasCoreTemplates && hasSalutations" class="px-6">
                 <Button
                     label="Next"
                     variant="outlined"
@@ -125,6 +129,8 @@ import {
     getSignOff,
 } from "../lib/utils.js";
 import Button from "../components/Button.vue";
+import TextBoxMultipleIcon from "vue-material-design-icons/TextBoxMultiple.vue";
+import IconCircle from "../components/IconCircle.vue";
 
 const emit = defineEmits(["navigate", "generate"]);
 

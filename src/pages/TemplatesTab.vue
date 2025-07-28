@@ -74,28 +74,14 @@
                 <hr />
 
                 <!-- NO TEMPLATES YET -->
-                <section
-                    v-if="
+                <!-- v-if="
                         templates.filter(
                             (template) => template.section !== 'Salutations'
                         ).length == 0
-                    "
-                    class="px-6"
-                >
-                    <div class="flex flex-col gap-5 mt-5">
-                        <!-- <div
-                        class="w-fit border-solid border-1 border-lime-100 mx-auto rounded-full p-6"
-                    >
-                        <div
-                            class="w-fit border-solid border-1 border-lime-200 mx-auto rounded-full p-4"
-                        >
-                            <div
-                                class="bg-lime-100 w-fit text-lime-700 mx-auto rounded-full p-6"
-                            >
-                                <TextBoxMultipleIcon :size="50" />
-                            </div>
-                        </div>
-                    </div> -->
+                    " -->
+                <!-- <small>{{ hasCoreTemplates }}</small> -->
+                <section v-if="!hasCoreTemplates" class="px-6 mt-[100px]">
+                    <div class="flex flex-col gap-5">
                         <div class="text-center">
                             <h3>You don't have any templates yet!</h3>
                             <p>
@@ -211,11 +197,14 @@
                                 />
                             </div>
                         </div>
-                        <hr class="" />
+                        <hr />
                     </div>
                 </section>
 
-                <section class="px-6 flex flex-col gap-5 mt-5">
+                <section
+                    v-if="hasCoreTemplates"
+                    class="px-6 flex flex-col gap-5 mt-5"
+                >
                     <input
                         v-if="displaySectionField"
                         type="text"
@@ -245,6 +234,17 @@
                         @button-click="addSection"
                         ><PlusIcon :size="20"
                     /></Button>
+                </section>
+
+                <section v-if="hasCoreTemplates" class="mt-5">
+                    <hr />
+                    <div class="px-6 flex flex-col gap-5 mt-5 items-end">
+                        <Button
+                            label="Export all templates"
+                            variant="link"
+                            @button-click="handleExportTemplates"
+                        />
+                    </div>
                 </section>
             </template>
         </div>
@@ -288,7 +288,6 @@ import {
 
 import CloudUploadIcon from "vue-material-design-icons/CloudUploadOutline.vue";
 import PlusIcon from "vue-material-design-icons/Plus.vue";
-import TextBoxMultipleIcon from "vue-material-design-icons/TextBoxMultiple.vue";
 import DragVerticalIcon from "vue-material-design-icons/DragVertical.vue";
 import PencilOutlineIcon from "vue-material-design-icons/PencilOutline.vue";
 import DeleteOutlineIcon from "vue-material-design-icons/DeleteOutline.vue";
@@ -316,30 +315,11 @@ const newSection = ref("");
 const displaySectionField = ref(false);
 const hoveredSection = ref(null);
 const focusedSection = ref(null);
-let displayDeleteSection = ref(false);
+// let displayDeleteSection = ref(false);
 let templatesJSON = ref(null);
 let file = ref(null);
 const isModalOpen = ref(false);
 const isLoading = ref(true);
-
-const modalActions = [
-    {
-        label: "Delete eection",
-        onClick: () => {
-            console.log("delete this section");
-            isModalOpen.value = false;
-        },
-        variant: "link",
-    },
-    {
-        label: "Delete section and templates",
-        onClick: () => {
-            console.log("delete this section AND templates");
-            isModalOpen.value = false;
-        },
-        variant: "filled",
-    },
-];
 
 const loadTemplates = async () => {
     isLoading.value = true;
@@ -405,6 +385,7 @@ const signOffTemplate = computed(() => {
 });
 
 const hasCoreTemplates = computed(() => {
+    console.log(getNonSalutations(templates.value));
     return getNonSalutations(templates.value);
 });
 
@@ -483,11 +464,11 @@ const disableCreateSection = computed(function () {
 });
 
 const handleExportTemplates = () => {
-    console.log("received array:");
-    console.log(templates.value);
+    // console.log("received array:");
+    // console.log(templates.value);
     templatesJSON = JSON.stringify(templates.value);
-    console.log("created JSON:");
-    console.log(templatesJSON);
+    // console.log("created JSON:");
+    // console.log(templatesJSON);
 
     const blob = new Blob([templatesJSON], {
         type: "application/json",
@@ -512,6 +493,17 @@ const handleImportTemplates = () => {
     const selectedFile = file.value?.files?.[0];
     if (!selectedFile) return;
 
+    // check that file is JSON
+    if (selectedFile.type !== "application/json") {
+        console.log("The file is not a JSON file.");
+        return;
+    }
+    console.log("valid file type");
+
+    // check that JSON has correct format:
+    // [{ "body": "Stringified HTML", "id": "String", "section": "String", "title": "String" },{ ... }]
+
+    // process file
     const reader = new FileReader();
 
     try {
@@ -521,6 +513,9 @@ const handleImportTemplates = () => {
             const parsed = JSON.parse(res.target.result);
             const importedTemplates = Array.isArray(parsed) ? parsed : [];
 
+            // do validation here
+
+            // continue if successful
             const templatesWithNewIds = importedTemplates.map((template) => ({
                 ...template,
                 id: crypto.randomUUID(),
@@ -579,9 +574,7 @@ const clearHoveredSection = () => {
 };
 
 const handleDeleteSection = () => {
-    console.log("fire delete modal", isModalOpen.value);
-    isModalOpen.value = !isModalOpen.value;
-    console.log("fire delete modal", isModalOpen.value);
+    isModalOpen.value = true;
 };
 
 const handleConfirmDeleteSectionWithTemplates = () => {
