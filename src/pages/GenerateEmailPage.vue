@@ -1,5 +1,4 @@
 <!-- pages/GenerateEmailPage.vue -->
-<!-- TODO: add hr between templates, excluding salutations -->
 <template>
     <div class="w-full bg-gray-100 py-3 px-6 flex flex-col gap-3 h-dvh">
         <div class="flex gap-3 flex-1 overflow-hidden">
@@ -236,10 +235,10 @@ const filledHTML = computed(() => {
 });
 
 const launchPlaintextEmail = () => {
-    // 1) grab your raw HTML
+    // 1) grab raw HTML
     const rawHTML = extractedHTML.value;
 
-    // 2) split on your divider markers
+    // 2) split on divider markers
     //    then trim + drop any pieces that end up empty
     const htmlSections = rawHTML
         .split(
@@ -269,7 +268,7 @@ const launchPlaintextEmail = () => {
         return text;
     };
 
-    // 4) convert each chunk → plaintext, trim only at the very ends,
+    // 4) convert each chunk to plaintext, trim only at the very ends,
     //    then filter out any that somehow became empty
     const textSections = htmlSections
         .map((chunk) => {
@@ -280,7 +279,7 @@ const launchPlaintextEmail = () => {
         })
         .filter((txt) => txt.trim() !== ""); // second‐pass filter
 
-    // 5) join with your custom divider
+    // 5) join with custom divider
     const body = textSections.join(
         "\n\n------------------------------------------\n\n"
     );
