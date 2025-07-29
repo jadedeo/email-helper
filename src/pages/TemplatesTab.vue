@@ -1,7 +1,10 @@
 <!-- pages/TemplateTab.vue -->
 <template>
-    <div class="flex justify-center bg-white">
-        <div class="flex flex-col mb-6 max-w-[550px] w-full bg-white">
+    <div
+        class="flex justify-center bg-white"
+        :class="isLoading ? 'h-[80%] items-center' : ''"
+    >
+        <div class="flex flex-col mb-6 max-w-[550px] w-full">
             <div v-if="isLoading" class="px-6 py-10 text-center text-gray-500">
                 Loading...
             </div>

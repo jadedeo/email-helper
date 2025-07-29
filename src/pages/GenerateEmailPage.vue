@@ -1,6 +1,5 @@
 <!-- pages/GenerateEmailPage.vue -->
 <!-- TODO: add hr between templates, excluding salutations -->
-<!-- TODO: add input for permit number & connect to subject -->
 <template>
     <div class="w-full bg-gray-100 py-3 px-6 flex flex-col gap-3 h-dvh">
         <div class="flex gap-3 flex-1 overflow-hidden">
@@ -138,6 +137,8 @@ const props = defineProps({
     },
 });
 
+const emit = defineEmits(["navigate-to-generate-tab"]);
+
 const subject = computed(() => {
     const permit = inputValues.value["Permit Number"];
     return permit?.trim()
@@ -154,12 +155,51 @@ const isModalOpen = ref(false);
 console.log("Selected templates:", props.templates);
 
 onMounted(() => {
-    props.templates.forEach((template, index) => {
+    // props.templates.forEach((template, index) => {
+    //     extractedHTML.value += template.body;
+    //     if (index < props.templates.length - 1) {
+    //         extractedHTML.value += `<div data-template-split style="height: 1.5rem;"></div>`;
+    //     }
+    // });
+
+    const nonSalutationTemplates = props.templates.filter(
+        (template) => template.section !== "Salutations"
+    );
+    const greeting = props.templates.find(
+        (template) =>
+            template.title === "Greeting" && template.section === "Salutations"
+    );
+    const signOff = props.templates.find(
+        (template) =>
+            template.title === "Sign-off" && template.section === "Salutations"
+    );
+
+    // Reset
+    extractedHTML.value = "";
+
+    // Add greeting if available
+    if (greeting) {
+        extractedHTML.value += greeting.body;
+        extractedHTML.value += `<div data-template-split style="height: 1.5rem;"></div>`;
+    }
+
+    // Add core templates with <hr> between
+    nonSalutationTemplates.forEach((template, index) => {
         extractedHTML.value += template.body;
-        if (index < props.templates.length - 1) {
-            extractedHTML.value += `<div data-template-split style="height: 1.5rem;"></div>`;
+        if (index < nonSalutationTemplates.length - 1) {
+            extractedHTML.value += `
+            <div data-template-split style="height: 1.5rem;"></div>
+            <hr data-template-split />
+            <div data-template-split style="height: 1.5rem;"></div>
+        `;
         }
     });
+
+    // Add sign-off if available
+    if (signOff) {
+        extractedHTML.value += `<div data-template-split style="height: 1.5rem;"></div>`;
+        extractedHTML.value += signOff.body;
+    }
 
     const placeholderRegex =
         /<custom-input\s+label="([^"]+)"\s*><\/custom-input>/g;
@@ -257,13 +297,21 @@ const copyFormattedEmail = async () => {
         tempDiv.innerHTML = filledHTML.value;
 
         tempDiv.querySelectorAll("[data-template-split]").forEach((el) => {
-            const spacer = document.createElement("span");
-            spacer.innerHTML = "&nbsp;";
-            spacer.style.display = "block";
-            spacer.style.lineHeight = "1.5em";
-            spacer.style.marginTop = "0.75em";
-            spacer.style.marginBottom = "0.75em";
-            el.replaceWith(spacer);
+            if (el.tagName === "HR") {
+                // style <hr> consistently
+                el.style.border = "none";
+                el.style.borderTop = "1px solid #ccc";
+                el.style.margin = "1.5em 0";
+            } else {
+                // add vertical spacing for <div data-template-split>
+                const spacer = document.createElement("div");
+                spacer.innerHTML = "&nbsp;";
+                spacer.style.display = "block";
+                spacer.style.lineHeight = "1.5em";
+                spacer.style.marginTop = "0.75em";
+                spacer.style.marginBottom = "0.75em";
+                el.replaceWith(spacer);
+            }
         });
 
         tempDiv.querySelectorAll("p, h1, h2, h3").forEach((p) => {
