@@ -174,32 +174,25 @@ onMounted(() => {
             template.title === "Sign-off" && template.section === "Salutations"
     );
 
-    // Reset
-    extractedHTML.value = "";
+    // 1) build an ordered array: greeting, core, sign-off
+    const allTemplates = [];
+    if (greeting) allTemplates.push(greeting);
+    allTemplates.push(...nonSalutationTemplates);
+    if (signOff) allTemplates.push(signOff);
 
-    // Add greeting if available
-    if (greeting) {
-        extractedHTML.value += greeting.body;
-        extractedHTML.value += `<div data-template-split style="height: 1.5rem;"></div>`;
-    }
-
-    // Add core templates with <hr> between
-    nonSalutationTemplates.forEach((template, index) => {
-        extractedHTML.value += template.body;
-        if (index < nonSalutationTemplates.length - 1) {
-            extractedHTML.value += `
-            <div data-template-split style="height: 1.5rem;"></div>
-            <hr data-template-split />
-            <div data-template-split style="height: 1.5rem;"></div>
-        `;
-        }
-    });
-
-    // Add sign-off if available
-    if (signOff) {
-        extractedHTML.value += `<div data-template-split style="height: 1.5rem;"></div>`;
-        extractedHTML.value += signOff.body;
-    }
+    // 2) map → body + (divider if not last)
+    extractedHTML.value = allTemplates
+        .map((tpl, i) => {
+            let html = tpl.body;
+            if (i < allTemplates.length - 1) {
+                html += `
+                <div data-template-split style="height: 1.5rem;"></div>
+                <hr data-template-split />
+                <div data-template-split style="height: 1.5rem;"></div>`;
+            }
+            return html;
+        })
+        .join("");
 
     const placeholderRegex =
         /<custom-input\s+label="([^"]+)"\s*><\/custom-input>/g;
@@ -243,52 +236,60 @@ const filledHTML = computed(() => {
 });
 
 const launchPlaintextEmail = () => {
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = filledHTML.value;
+    // 1) grab your raw HTML
+    const rawHTML = extractedHTML.value;
 
+    // 2) split on your divider markers
+    //    then trim + drop any pieces that end up empty
+    const htmlSections = rawHTML
+        .split(
+            /<hr[^>]*data-template-split[^>]*>|<div[^>]*data-template-split[^>]*>/gi
+        )
+        .map((s) => s.trim())
+        .filter((s) => s !== "");
+
+    // 3) walk the DOM, preserving all intra-template newlines
     const walk = (node) => {
         let text = "";
-
         node.childNodes.forEach((child) => {
             if (child.nodeType === Node.TEXT_NODE) {
                 text += child.textContent;
             } else if (child.nodeType === Node.ELEMENT_NODE) {
                 const tag = child.tagName.toLowerCase();
-
                 if (tag === "br") {
                     text += "\n";
-                } else if (tag === "p") {
-                    if (child.textContent.trim() === "") {
-                        text += "\n";
-                    } else {
-                        text += walk(child) + "\n";
-                    }
-                } else if (
-                    tag === "div" &&
-                    child.dataset.templateSplit !== undefined
-                ) {
-                    // spacer between templates
-                    text += "\n\n";
-                } else if (["p", "div", "section", "li"].includes(tag)) {
-                    text += walk(child) + "\n";
                 } else {
                     text += walk(child);
+                    if (["p", "div", "section", "li"].includes(tag)) {
+                        text += "\n";
+                    }
                 }
             }
         });
-
         return text;
     };
 
-    const plainTextWithBreaks = walk(tempDiv)
-        .replace(/\n{3,}/g, "\n\n") // collapse excessive spacing
-        .replace(/[ \t]+\n/g, "\n") // clean trailing whitespace
-        .trim();
+    // 4) convert each chunk → plaintext, trim only at the very ends,
+    //    then filter out any that somehow became empty
+    const textSections = htmlSections
+        .map((chunk) => {
+            const container = document.createElement("div");
+            container.innerHTML = chunk;
+            // remove leading/trailing newlines/spaces only
+            return walk(container).replace(/^[\s\n]+|[\s\n]+$/g, "");
+        })
+        .filter((txt) => txt.trim() !== ""); // second‐pass filter
 
-    const mailtoLink = `mailto:?subject=${encodeURIComponent(
-        subject.value
-    )}&body=${encodeURIComponent(plainTextWithBreaks)}`;
-    window.location.href = mailtoLink;
+    // 5) join with your custom divider
+    const body = textSections.join(
+        "\n\n------------------------------------------\n\n"
+    );
+
+    // 6) fire off the mailto
+    const mailto =
+        `mailto:?subject=${encodeURIComponent(subject.value)}` +
+        `&body=${encodeURIComponent(body)}`;
+    window.location.href = mailto;
 };
 
 const copyFormattedEmail = async () => {
