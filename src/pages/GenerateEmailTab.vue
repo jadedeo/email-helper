@@ -6,7 +6,7 @@
     >
         <!-- :class="!hasCoreTemplates || !hasSalutations ? 'items-center' : ''" -->
         <div
-            class="flex flex-col gap-5 mb-6 max-w-[550px] w-full"
+            class="flex flex-col gap-5 mb-6 max-w-[550px] w-full relative"
             :class="hasCoreTemplates && hasSalutations ? 'justify-between' : ''"
         >
             <IconCircle v-if="!hasCoreTemplates || !hasSalutations">
@@ -104,17 +104,20 @@
                     </section>
                 </div>
             </div>
-            <!-- <hr
-                class="thisone-3"
-                v-if="hasCoreTemplates && hasSalutations && sections.length > 2"
-            /> -->
-            <section v-if="hasCoreTemplates && hasSalutations" class="px-6">
-                <Button
-                    label="Next"
-                    variant="outlined"
-                    @button-click="proceedToGenerateEmail"
-                    :disabled="disableNext"
-                />
+
+            <section
+                v-if="hasCoreTemplates && hasSalutations"
+                class="fixed bottom-0 inset-x-0 z-10 bg-white"
+            >
+                <div class="mx-auto max-w-[550px] px-6 py-3">
+                    <Button
+                        class="w-full"
+                        label="Next"
+                        variant="outlined"
+                        @button-click="proceedToGenerateEmail"
+                        :disabled="disableNext"
+                    />
+                </div>
             </section>
         </div>
     </div>
