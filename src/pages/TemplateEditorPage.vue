@@ -29,7 +29,7 @@
                 v-if="isEditingTemplate"
                 @button-click="handleDeleteTemplate"
                 label="Delete template"
-                variant="cancelLink"
+                variant="redLink"
             />
 
             <div class="flex justify-end gap-2 w-fill">
@@ -71,7 +71,7 @@
             <template v-if="modalType === 'delete'">
                 <Button
                     label="Delete template"
-                    variant="cancelFilled"
+                    variant="grayFilled"
                     @button-click="handleConfirmDeleteTemplate"
                 >
                     <DeleteOutlineIcon fillColor="#e7000b" :size="18" />
@@ -80,7 +80,7 @@
             <template v-else-if="modalType === 'exitWithoutSaving'">
                 <Button
                     label="Discard changes"
-                    variant="cancelFilled"
+                    variant="grayFilled"
                     @button-click="handleDiscardChanges"
                 >
                     <DeleteOutlineIcon fillColor="#e7000b" :size="18" />

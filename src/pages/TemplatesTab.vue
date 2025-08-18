@@ -1,4 +1,5 @@
 <!-- pages/TemplateTab.vue -->
+<!-- TODO: add a way to delete all templates(?) -->
 <template>
     <div
         class="flex justify-center bg-white"
@@ -11,7 +12,9 @@
             <template v-else>
                 <section class="flex flex-col gap-2 px-6 mb-5">
                     <h2>Salutation</h2>
-                    <InfoBox heading="Salutations are automatically applied" />
+                    <InfoBox
+                        heading="Salutations are automatically applied to all emails"
+                    />
 
                     <div>
                         <div
@@ -77,18 +80,12 @@
                 <hr />
 
                 <!-- NO TEMPLATES YET -->
-                <!-- v-if="
-                        templates.filter(
-                            (template) => template.section !== 'Salutations'
-                        ).length == 0
-                    " -->
-                <!-- <small>{{ hasCoreTemplates }}</small> -->
                 <section v-if="!hasCoreTemplates" class="px-6 mt-[100px]">
                     <div class="flex flex-col gap-5">
                         <div class="text-center">
                             <h3>You don't have any templates yet!</h3>
                             <p>
-                                Upload template files or create a new document.
+                                Upload a template file or create a new document.
                             </p>
                         </div>
                         <div class="flex gap-3">
@@ -258,28 +255,50 @@
             </template>
         </div>
     </div>
-    <Modal v-if="isModalOpen" @close="isModalOpen = false">
+    <Modal v-if="isModalOpen" @close="handleCloseModal">
         <template #title>
-            You are about to permanently delete the
-            <strong>"{{ focusedSection }}"</strong> section
+            <template v-if="modalMode === 'importError'">
+                {{ importErrorMessage[0] }}
+            </template>
+            <template v-else-if="modalMode === 'deleteSection'">
+                You are about to permanently delete the
+                <strong>"{{ focusedSection }}"</strong> section
+            </template>
         </template>
+
         <template #body>
-            You may either delete all templates within this section, or move
-            them into the <strong>"Uncategorized"</strong> section.
+            <template v-if="modalMode === 'importError'">
+                {{ importErrorMessage[1] }}
+            </template>
+            <template v-else-if="modalMode === 'deleteSection'">
+                You may either delete all templates within this section, or move
+                them into the <strong>"Uncategorized"</strong> section.
+            </template>
         </template>
+
         <template #footer>
-            <Button
-                label="Delete section"
-                variant="cancelFilled"
-                @button-click="handleConfirmDeleteSection"
-                ><DeleteOutlineIcon fillColor="#e7000b" :size="18"
-            /></Button>
-            <Button
-                label="Delete section and templates"
-                variant="cancelLink"
-                class="w-full"
-                @button-click="handleConfirmDeleteSectionWithTemplates"
-            />
+            <template v-if="modalMode === 'importError'">
+                <Button
+                    label="OK"
+                    variant="grayFilled"
+                    class="!text-gray-700"
+                    @button-click="handleCloseModal"
+                />
+            </template>
+            <template v-else-if="modalMode === 'deleteSection'">
+                <Button
+                    label="Delete section"
+                    variant="grayFilled"
+                    @button-click="handleConfirmDeleteSection"
+                    ><DeleteOutlineIcon fillColor="#e7000b" :size="18"
+                /></Button>
+                <Button
+                    label="Delete section and templates"
+                    variant="redLink"
+                    class="w-full"
+                    @button-click="handleConfirmDeleteSectionWithTemplates"
+                />
+            </template>
         </template>
     </Modal>
 </template>
@@ -294,12 +313,14 @@ import {
     getGreeting,
     getSignOff,
 } from "../lib/utils.js";
+import { Templates } from "../lib/template-validator.mjs";
 
 import CloudUploadIcon from "vue-material-design-icons/CloudUploadOutline.vue";
 import PlusIcon from "vue-material-design-icons/Plus.vue";
 import DragVerticalIcon from "vue-material-design-icons/DragVertical.vue";
 import PencilOutlineIcon from "vue-material-design-icons/PencilOutline.vue";
 import DeleteOutlineIcon from "vue-material-design-icons/DeleteOutline.vue";
+
 import draggable from "vuedraggable";
 import Button from "../components/Button.vue";
 import InfoBox from "../components/InfoBox.vue";
@@ -330,6 +351,8 @@ let file = ref(null);
 const isModalOpen = ref(false);
 const isLoading = ref(true);
 const addSectionErrorMessage = ref("");
+const importErrorMessage = ref([]);
+let validateTemplates = Templates;
 
 const loadTemplates = async () => {
     isLoading.value = true;
@@ -395,7 +418,7 @@ const signOffTemplate = computed(() => {
 });
 
 const hasCoreTemplates = computed(() => {
-    console.log(getNonSalutations(templates.value));
+    // console.log(getNonSalutations(templates.value));
     return getNonSalutations(templates.value);
 });
 
@@ -423,6 +446,12 @@ const orderedSections = computed(() => {
                 ? ["Uncategorized Templates"]
                 : []
         );
+});
+
+const modalMode = computed(() => {
+    if (importErrorMessage.value.length > 0) return "importError";
+    if (focusedSection.value) return "deleteSection";
+    return null;
 });
 
 const openTemplateEditorPage = (
@@ -476,11 +505,7 @@ const disableCreateSection = computed(function () {
 });
 
 const handleExportTemplates = () => {
-    // console.log("received array:");
-    // console.log(templates.value);
     templatesJSON = JSON.stringify(templates.value);
-    // console.log("created JSON:");
-    // console.log(templatesJSON);
 
     const blob = new Blob([templatesJSON], {
         type: "application/json",
@@ -500,7 +525,6 @@ const handleExportTemplates = () => {
     );
 };
 
-// TODO: add error checking for invalid formats/contents
 const handleImportTemplates = () => {
     const selectedFile = file.value?.files?.[0];
     if (!selectedFile) return;
@@ -508,14 +532,15 @@ const handleImportTemplates = () => {
     // check that file is JSON
     if (selectedFile.type !== "application/json") {
         console.log("The file is not a JSON file.");
+        importErrorMessage.value = [
+            "Incorrect file format",
+            "You may only upload JSON files",
+        ];
+        isModalOpen.value = true;
         return;
     }
-    console.log("valid file type");
+    // console.log("valid file type");
 
-    // check that JSON has correct format:
-    // [{ "body": "Stringified HTML", "id": "String", "section": "String", "title": "String" },{ ... }]
-
-    // process file
     const reader = new FileReader();
 
     try {
@@ -525,7 +550,23 @@ const handleImportTemplates = () => {
             const parsed = JSON.parse(res.target.result);
             const importedTemplates = Array.isArray(parsed) ? parsed : [];
 
-            // do validation here
+            // file content validation
+            for (const template of importedTemplates) {
+                // console.log("looking at:", template.title);
+                if (validateTemplates(template)) {
+                    // console.log("SUCCESS");
+                } else if (!validateTemplates(template)) {
+                    // console.log("ERRORS 1:", validateTemplates.errors);
+                    importErrorMessage.value = [
+                        "Invalid file contents",
+                        "Please ensure uploaded templates contain the appropriate attributes (body, id, section & title)",
+                    ];
+                    isModalOpen.value = true;
+                    return;
+                }
+            }
+
+            // console.log("all templates correct format");
 
             // continue if successful
             const templatesWithNewIds = importedTemplates.map((template) => ({
@@ -576,8 +617,16 @@ const handleImportTemplates = () => {
             });
         };
     } catch (error) {
-        console.error("failed to import templates:", error);
+        // console.error("failed to import templates:", error);
+        importErrorMessage.value = ["Error importing templates", error];
+        isModalOpen.value = true;
     }
+};
+
+const handleCloseModal = () => {
+    isModalOpen.value = false;
+    importErrorMessage.value = [];
+    focusedSection.value = null;
 };
 
 const handleSectionHover = (sectionName) => {

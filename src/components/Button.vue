@@ -40,12 +40,12 @@ const computedClass = computed(() => {
 
     const variants = {
         filled: "w-full px-2 py-2 rounded-md bg-lime-700 text-white",
-        cancelFilled:
+        grayFilled:
             "w-full p-2 rounded-md bg-gray-50 text-red-600 border-1 border-gray-200",
         outlined:
             "w-full p-2 rounded-md border border-lime-700 bg-lime-50 text-lime-700",
         link: "underline underline-offset-2 text-lime-700 bg-transparent p-0",
-        cancelLink:
+        redLink:
             "underline underline-offset-2 text-red-600 bg-transparent px-0",
         activetab: "w-full px-2 py-2 rounded-md bg-lime-200 text-lime-800",
         inactivetab: "w-full px-2 py-2 rounded-md bg-gray-100 text-gray-500",

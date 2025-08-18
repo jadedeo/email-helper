@@ -33,6 +33,8 @@
 import InformationIcon from "vue-material-design-icons/Information.vue";
 import CloseIcon from "vue-material-design-icons/Close.vue";
 
+const emit = defineEmits(["dismiss"]);
+
 const props = defineProps({
     heading: {
         type: String,

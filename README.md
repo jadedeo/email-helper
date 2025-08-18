@@ -10,6 +10,7 @@ _2025 MHCI Capstone_
 -   [TipTap](https://tiptap.dev/product/editor)
 -   [Tailwind CSS](https://tailwindcss.com/)
 -   [Vue Material Design Icons](https://www.npmjs.com/package/vue-material-design-icons)
+-   [AJV (JSON Schema Validator)](https://ajv.js.org/)
 
 ## Requirements
 

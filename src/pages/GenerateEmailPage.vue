@@ -80,7 +80,7 @@
         <div class="flex w-full justify-between">
             <Button
                 label="Back to template selection"
-                variant="cancelLink"
+                variant="redLink"
                 @button-click="isModalOpen = true"
             />
             <div class="flex justify-end gap-3">
@@ -113,7 +113,7 @@
         <template #footer>
             <Button
                 label="Discard email"
-                variant="cancelFilled"
+                variant="grayFilled"
                 @button-click="handleConfirmDiscardEmail"
             >
                 <DeleteOutlineIcon fillColor="#e7000b" :size="18" />
