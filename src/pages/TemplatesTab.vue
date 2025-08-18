@@ -134,6 +134,7 @@
                                     @click="handleDeleteSection"
                                     fillColor="#e7000b"
                                     :size="18"
+                                    class="hover:cursor-pointer"
                                 />
                             </div>
 
@@ -208,13 +209,18 @@
                     v-if="hasCoreTemplates"
                     class="px-6 flex flex-col gap-5 mt-5"
                 >
-                    <input
-                        v-if="displaySectionField"
-                        type="text"
-                        v-model="newSection"
-                        placeholder="New section name"
-                        class="standard"
-                    />
+                    <div v-if="displaySectionField" class="flex flex-col gap-2">
+                        <input
+                            type="text"
+                            v-model="newSection"
+                            placeholder="New section name"
+                            class="standard"
+                        />
+
+                        <p v-if="addSectionErrorMessage" class="text-red-600">
+                            {{ addSectionErrorMessage }}
+                        </p>
+                    </div>
 
                     <div v-if="displaySectionField" class="flex gap-3">
                         <Button
@@ -323,6 +329,7 @@ let templatesJSON = ref(null);
 let file = ref(null);
 const isModalOpen = ref(false);
 const isLoading = ref(true);
+const addSectionErrorMessage = ref("");
 
 const loadTemplates = async () => {
     isLoading.value = true;
@@ -438,15 +445,15 @@ const addSection = () => {
 const createSection = () => {
     const cleanName = newSection.value.trim();
 
-    // TODO: replace alerts with error messaging at field
+    // sections is not an array
     if (!Array.isArray(sections.value)) {
-        console.error("sections.value is not an array:", sections.value);
-        alert("There was an error saving the section. Please try again.");
+        addSectionErrorMessage.value =
+            "There was an error saving the section. Please try again.";
         return;
     }
 
     if (sections.value.includes(cleanName)) {
-        alert("That section already exists.");
+        addSectionErrorMessage.value = "That section already exists.";
         return;
     }
 
@@ -455,11 +462,13 @@ const createSection = () => {
     chrome.storage.local.set({ sections: updatedSections });
 
     newSection.value = "";
+    addSectionErrorMessage.value = "";
     displaySectionField.value = false;
 };
 
 const cancelAddSection = () => {
     newSection.value = "";
+    addSectionErrorMessage.value = "";
     displaySectionField.value = false;
 };
 const disableCreateSection = computed(function () {
@@ -549,6 +558,10 @@ const handleImportTemplates = () => {
                     ),
                 ];
 
+                if (!newSections.includes("Uncategorized Templates")) {
+                    newSections.push("Uncategorized Templates");
+                }
+
                 chrome.storage.local.set({ templates: mergedTemplates }, () => {
                     chrome.storage.local.set({ sections: newSections }, () => {
                         templates.value = mergedTemplates;
@@ -568,6 +581,7 @@ const handleImportTemplates = () => {
 };
 
 const handleSectionHover = (sectionName) => {
+    if (sectionName == "Uncategorized Templates") return;
     hoveredSection.value = sectionName;
     focusedSection.value = sectionName;
 };

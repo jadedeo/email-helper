@@ -1,4 +1,5 @@
 <!-- pages/GenerateEmailTab.vue -->
+<!-- TODO: add search -->
 <template>
     <div
         class="flex justify-center bg-white min-h-[85%]"
@@ -109,7 +110,7 @@
                 v-if="hasCoreTemplates && hasSalutations"
                 class="fixed bottom-0 inset-x-0 z-10 bg-white"
             >
-                <div class="mx-auto max-w-[550px] px-6 py-3">
+                <div class="mx-auto max-w-[550px] px-6 pt-3 pb-5">
                     <Button
                         class="w-full"
                         label="Next"
