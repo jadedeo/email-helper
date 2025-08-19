@@ -1,4 +1,5 @@
 /* TODO: add dark mode */
+/* TODO: use tailwind/@apply */
 
 @import "tailwindcss";
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
@@ -110,6 +111,20 @@ ol li p {
     margin-bottom: 0.25em;
 }
 
-.template-section:hover .infobox-component {
-    background-color: white;
+.template-section.uncategorizedtemplates-section {
+    @apply hover:bg-white;
+}
+
+.template-section:not(.uncategorizedtemplates-section):hover
+    .infobox-component {
+    @apply bg-white;
+}
+
+button.active,
+.text-color-button:has(button.active) {
+    @apply bg-gray-100;
+}
+
+.text-color-button:has(button.active) {
+    @apply p-2 rounded-full;
 }

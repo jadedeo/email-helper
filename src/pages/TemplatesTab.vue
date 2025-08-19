@@ -120,6 +120,7 @@
                         v-for="sectionName in orderedSections"
                         :key="sectionName"
                         class="template-section hover:bg-gray-50"
+                        :class="`${sectionNameNoSpaces(sectionName)}-section`"
                         @mouseover="handleSectionHover(sectionName)"
                         @mouseleave="clearHoveredSection"
                     >
@@ -244,7 +245,12 @@
 
                 <section v-if="hasCoreTemplates" class="mt-5">
                     <hr />
-                    <div class="px-6 flex flex-col gap-5 mt-5 items-end">
+                    <div class="px-6 flex gap-5 mt-5 justify-between">
+                        <Button
+                            label="Delete all templates"
+                            variant="redLink"
+                            @button-click=""
+                        />
                         <Button
                             label="Export all templates"
                             variant="link"
@@ -453,6 +459,10 @@ const modalMode = computed(() => {
     if (focusedSection.value) return "deleteSection";
     return null;
 });
+
+const sectionNameNoSpaces = (originalName) => {
+    return originalName.toLowerCase().split(" ").join("");
+};
 
 const openTemplateEditorPage = (
     template = null,

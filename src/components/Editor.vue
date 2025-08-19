@@ -41,13 +41,23 @@
                 <LinkVariantIcon fillColor="#000000" :size="18" />
             </Button>
 
-            <input
-                type="color"
-                @input="
-                    editor.chain().focus().setColor($event.target.value).run()
-                "
-                :value="editor?.getAttributes('textStyle').color"
-            />
+            <Button
+                class="text-color-button"
+                v-for="color in colors"
+                :key="color"
+                variant="editormenuitem"
+                @click="handleToggleColor(color, $event)"
+            >
+                <Button
+                    class="!rounded-full !h-4 !w-4 cursor-pointer"
+                    :class="{
+                        active: editor?.isActive('textStyle', {
+                            color: color,
+                        }),
+                    }"
+                    :style="{ backgroundColor: color }"
+                ></Button>
+            </Button>
 
             <Button
                 @click="
@@ -151,6 +161,8 @@ const editor = useEditor({
     },
 });
 
+const colors = ["#497d00", "#3b82f6", "#dc2626"];
+
 watch(
     () => props.modelValue,
     (newValue) => {
@@ -163,6 +175,14 @@ watch(
 onBeforeUnmount(() => {
     if (editor.value) editor.value.destroy();
 });
+
+const handleToggleColor = (color, e) => {
+    if (!e.target.classList.contains("active")) {
+        editor.value.chain().focus().setColor(color).run();
+    } else {
+        editor.value.chain().focus().unsetColor().run();
+    }
+};
 </script>
 
 <style scoped>
