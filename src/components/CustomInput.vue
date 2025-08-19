@@ -1,20 +1,20 @@
 <!-- components/CustomInputComponent.vue -->
-<!-- TODO: don't let dropdown offset content; lay on top-->
 <template>
     <node-view-wrapper class="custom-input">
         <template v-if="isEditing">
             <div
-                class="flex flex-col gap-1 bg-white drop-shadow-sm rounded-md p-2"
+                class="flex flex-col gap-1 bg-white drop-shadow-sm rounded-t-md p-2 items-center"
             >
-                <div class="flex">
+                <div class="flex items-center">
                     <div
                         class="flex items-center gap-2 h-fit rounded-full border-lime-500 border-1 border-solid px-2"
                     >
                         <TextIcon fillColor="#000000" :size="16" />
                         <input
                             v-model="inputValue"
-                            class="input focus:outline-none capitalize text-sm"
+                            class="input focus:outline-none capitalize"
                             placeholder="Custom input field"
+                            autofocus
                         />
                     </div>
 
@@ -27,13 +27,13 @@
                     </div>
                 </div>
                 <ul
-                    class="suggestions bg-white rounded-md text-sm max-h-40 overflow-y-auto !list-none !m-0 !p-0"
+                    class="suggestions bg-white rounded-b-md max-h-20 overflow-y-auto !list-none !m-0 !p-0"
                 >
                     <li
                         v-for="option in filteredOptions"
                         :key="option"
                         @click="selectOption(option)"
-                        class="cursor-pointer px-3 py-1 hover:bg-lime-100 text-sm"
+                        class="cursor-pointer px-3 py-1 hover:bg-lime-100"
                     >
                         {{ option }}
                     </li>
@@ -62,6 +62,7 @@ import TextIcon from "vue-material-design-icons/Text.vue";
 import Button from "./Button.vue";
 
 const props = defineProps({ nodeViewProps });
+const { deleteNode } = props;
 
 const inputValue = ref(props.node.attrs.label || "");
 const isEditing = ref(!props.node.attrs.label);
@@ -90,8 +91,12 @@ const selectOption = (name) => {
 const apply = () => {
     const trimmed = inputValue.value.trim();
 
-    // block empty labels
-    if (!trimmed) return;
+    if (!trimmed) {
+        // remove custom input node if empty
+        deleteNode();
+        return;
+    }
+
     props.updateAttributes({ label: trimmed });
     updateDefaultCustomInputs(trimmed);
     isEditing.value = false;
@@ -120,12 +125,12 @@ const updateDefaultCustomInputs = (newInput) => {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    position: relative;
 }
 
 .input {
     border: none;
     padding: 0.25rem;
-    font-size: 0.875rem;
 }
 
 .label {
@@ -133,7 +138,13 @@ const updateDefaultCustomInputs = (newInput) => {
 }
 
 .suggestions {
-    margin-top: 0.25rem;
-    z-index: 10;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    z-index: 50;
+    max-height: 5rem;
+    overflow-y: auto;
 }
 </style>

@@ -249,7 +249,7 @@
                         <Button
                             label="Delete all templates"
                             variant="redLink"
-                            @button-click=""
+                            @button-click="handleDeleteAllTemplates"
                         />
                         <Button
                             label="Export all templates"
@@ -270,6 +270,9 @@
                 You are about to permanently delete the
                 <strong>"{{ focusedSection }}"</strong> section
             </template>
+            <template v-else-if="modalMode === 'deleteAllTemplates'">
+                {{ deleteAllTemplatesErrorMessage[0] }}
+            </template>
         </template>
 
         <template #body>
@@ -279,6 +282,9 @@
             <template v-else-if="modalMode === 'deleteSection'">
                 You may either delete all templates within this section, or move
                 them into the <strong>"Uncategorized"</strong> section.
+            </template>
+            <template v-else-if="modalMode === 'deleteAllTemplates'">
+                {{ deleteAllTemplatesErrorMessage[1] }}
             </template>
         </template>
 
@@ -305,6 +311,15 @@
                     @button-click="handleConfirmDeleteSectionWithTemplates"
                 />
             </template>
+            <template v-else-if="modalMode === 'deleteAllTemplates'"
+                ><Button
+                    label="Delete all templates"
+                    variant="grayFilled"
+                    @button-click="handleConfirmDeleteAllTemplates"
+                    ><DeleteOutlineIcon
+                        fillColor="#e7000b"
+                        :size="18" /></Button
+            ></template>
         </template>
     </Modal>
 </template>
@@ -351,13 +366,13 @@ const newSection = ref("");
 const displaySectionField = ref(false);
 const hoveredSection = ref(null);
 const focusedSection = ref(null);
-// let displayDeleteSection = ref(false);
 let templatesJSON = ref(null);
 let file = ref(null);
 const isModalOpen = ref(false);
 const isLoading = ref(true);
 const addSectionErrorMessage = ref("");
 const importErrorMessage = ref([]);
+const deleteAllTemplatesErrorMessage = ref([]);
 let validateTemplates = Templates;
 
 const loadTemplates = async () => {
@@ -457,6 +472,8 @@ const orderedSections = computed(() => {
 const modalMode = computed(() => {
     if (importErrorMessage.value.length > 0) return "importError";
     if (focusedSection.value) return "deleteSection";
+    if (deleteAllTemplatesErrorMessage.value.length > 0)
+        return "deleteAllTemplates";
     return null;
 });
 
@@ -636,7 +653,8 @@ const handleImportTemplates = () => {
 const handleCloseModal = () => {
     isModalOpen.value = false;
     importErrorMessage.value = [];
-    focusedSection.value = null;
+    deleteAllTemplatesErrorMessage.value = [];
+    clearHoveredSection();
 };
 
 const handleSectionHover = (sectionName) => {
@@ -647,6 +665,7 @@ const handleSectionHover = (sectionName) => {
 
 const clearHoveredSection = () => {
     hoveredSection.value = null;
+    focusedSection.value = null;
 };
 
 const handleDeleteSection = () => {
@@ -710,6 +729,25 @@ const handleConfirmDeleteSection = () => {
                     // emit("close");
                 });
             });
+        });
+    });
+};
+
+const handleDeleteAllTemplates = () => {
+    deleteAllTemplatesErrorMessage.value = [
+        "You're about to delete all of your templates",
+        "This action is irreversible - are you sure?",
+    ];
+    isModalOpen.value = true;
+};
+
+const handleConfirmDeleteAllTemplates = () => {
+    chrome.storage.local.set({ templates: [] }, () => {
+        const defaultSections = ["Salutations", "Uncategorized Templates"];
+        chrome.storage.local.set({ sections: defaultSections }, () => {
+            isModalOpen.value = false;
+            deleteAllTemplatesErrorMessage.value = [];
+            loadTemplates();
         });
     });
 };
