@@ -5,7 +5,6 @@
         class="flex justify-center bg-white min-h-[85%]"
         :class="!hasCoreTemplates || !hasSalutations ? 'pt-[100px]' : ''"
     >
-        <!-- :class="!hasCoreTemplates || !hasSalutations ? 'items-center' : ''" -->
         <div
             class="flex flex-col gap-5 mb-6 max-w-[550px] w-full relative"
             :class="hasCoreTemplates && hasSalutations ? 'justify-between' : ''"
@@ -44,11 +43,17 @@
                         email. These selections will be used to populate a
                         template.
                     </p>
+                    <div class="flex gap-2">
+                        <input
+                            type="text"
+                            v-model="searchQuery"
+                            placeholder="Search for templates"
+                            class="standard"
+                        />
+                        <Button label="Search" @click="handleSearch" />
+                    </div>
                 </section>
-                <hr
-                    class="thisone-2"
-                    v-if="hasCoreTemplates && hasSalutations"
-                />
+                <hr v-if="hasCoreTemplates && hasSalutations" />
 
                 <div class="flex flex-col gap-5">
                     <section
@@ -76,7 +81,7 @@
                                 v-for="template in sectionTemplates[section] ||
                                 []"
                                 :key="template.id"
-                                class="flex items-center gap-2"
+                                class="flex items-center gap-2 w-full"
                             >
                                 <input
                                     type="checkbox"
@@ -84,14 +89,13 @@
                                     :value="template.id"
                                     v-model="selectedTemplates"
                                 />
-                                <label :for="template.id">{{
+                                <label :for="template.id" class="w-full">{{
                                     template.title
                                 }}</label>
                             </li>
                         </ul>
 
                         <hr
-                            class="thisone-1"
                             v-if="
                                 index < populatedSections.length - 1 &&
                                 templates.filter(
@@ -141,6 +145,7 @@ const emit = defineEmits(["navigate", "generate"]);
 const templates = ref([]);
 const sections = ref([]);
 const selectedTemplates = ref([]);
+const searchQuery = ref("");
 
 onMounted(async () => {
     const { templates: t, sections: s } = await loadTemplatesAndSections();
@@ -212,6 +217,15 @@ const populatedSections = computed(() => {
 const disableNext = computed(() => {
     return selectedTemplates.value.length == 0;
 });
+
+const handleSearch = () => {
+    console.log("search for", searchQuery.value);
+
+    // if found in section, return entire section
+    // from sections not already returned, search template titles
+    // if found in template title(s), display section name & then found template(s)
+    // uncategorized templates section should always be displayed last
+};
 </script>
 
 <style scoped></style>

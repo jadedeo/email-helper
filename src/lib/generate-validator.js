@@ -1,5 +1,5 @@
 // lib/generate-validator.js
-// if changed, run 'node src/lib/generate-validator.js' to generate schema file
+// if changed, run 'node src/lib/generate-validator.js' to generate new schema file
 // see: https://ajv.js.org/standalone.html
 
 import { writeFileSync } from "fs";

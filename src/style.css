@@ -107,8 +107,9 @@ ol {
 
 ul li p,
 ol li p {
-    margin-top: 0.25em;
-    margin-bottom: 0.25em;
+    /* margin-top: 0.25em;
+    margin-bottom: 0.25em; */
+    @apply my-[0.25em];
 }
 
 .template-section.uncategorizedtemplates-section {
@@ -127,4 +128,14 @@ button.active,
 
 .text-color-button:has(button.active) {
     @apply p-2 rounded-full;
+}
+
+input[type="checkbox"] {
+    @apply accent-black cursor-pointer;
+}
+
+input[type="checkbox"] + label,
+li:has(input[type="checkbox"]),
+div:has(input[type="checkbox"]) {
+    @apply cursor-pointer;
 }

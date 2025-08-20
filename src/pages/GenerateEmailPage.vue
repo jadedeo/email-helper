@@ -69,8 +69,16 @@
 
                     <hr />
 
+                    <!-- RIGHT PANEL Preview -->
                     <div
+                        v-if="isFormatted"
                         v-html="filledHTML"
+                        class="overflow-y-auto wrap-normal"
+                    ></div>
+
+                    <div
+                        v-else
+                        v-html="strippedHTML"
                         class="overflow-y-auto wrap-normal"
                     ></div>
                 </section>
@@ -90,25 +98,35 @@
                     </div>
                 </transition>
 
+                <div class="flex items-center gap-1 cursor">
+                    <input
+                        type="checkbox"
+                        id="formatting-checkbox"
+                        v-model="isFormatted"
+                    />
+                    <label for="formatting-checkbox">Apply Formatting</label>
+                </div>
+
                 <Button
+                    v-if="isFormatted"
                     @button-click="copyFormattedEmail"
                     label="Copy with Formatting"
-                    variant="outlined"
-                    class="!w-fit !px-5"
+                    class="!w-[190px] !px-5"
                     :disabled="disableCopyAndDraft"
                 />
 
                 <Button
+                    v-else
                     @button-click="launchPlaintextEmail"
                     label="Create Draft in Mail Client"
-                    class="!w-fit !px-5"
+                    class="!w-[190px] !px-5"
                     :disabled="disableCopyAndDraft"
                 />
             </div>
         </div>
     </div>
     <Modal v-if="isModalOpen" @close="isModalOpen = false">
-        <template #title> You'e about to lose all progress. </template>
+        <template #title> You're about to lose all progress. </template>
 
         <template #footer>
             <Button
@@ -151,17 +169,11 @@ const inputValues = ref({});
 
 const showToast = ref(false);
 const isModalOpen = ref(false);
+const isFormatted = ref(true);
 
-console.log("Selected templates:", props.templates);
+// console.log("Selected templates:", props.templates);
 
 onMounted(() => {
-    // props.templates.forEach((template, index) => {
-    //     extractedHTML.value += template.body;
-    //     if (index < props.templates.length - 1) {
-    //         extractedHTML.value += `<div data-template-split style="height: 1.5rem;"></div>`;
-    //     }
-    // });
-
     const nonSalutationTemplates = props.templates.filter(
         (template) => template.section !== "Salutations"
     );
@@ -174,13 +186,13 @@ onMounted(() => {
             template.title === "Sign-off" && template.section === "Salutations"
     );
 
-    // 1) build an ordered array: greeting, core, sign-off
+    // build ordered array: greeting, core, sign-off
     const allTemplates = [];
     if (greeting) allTemplates.push(greeting);
     allTemplates.push(...nonSalutationTemplates);
     if (signOff) allTemplates.push(signOff);
 
-    // 2) map → body + (divider if not last)
+    // map -> body + (divider if not last)
     extractedHTML.value = allTemplates
         .map((tpl, i) => {
             let html = tpl.body;
@@ -196,14 +208,14 @@ onMounted(() => {
 
     const placeholderRegex =
         /<custom-input\s+label="([^"]+)"\s*><\/custom-input>/g;
-    const uniqueLabels = new Set();
-    let match;
 
+    const uniqueLabels = new Set();
+    uniqueLabels.add("Permit Number");
+
+    let match;
     while ((match = placeholderRegex.exec(extractedHTML.value)) !== null) {
         uniqueLabels.add(match[1]);
     }
-
-    uniqueLabels.add("Permit Number");
 
     uniqueLabels.forEach((label) => {
         inputValues.value[label] = "";
@@ -228,19 +240,57 @@ const filledHTML = computed(() => {
 
         result = result.replace(
             regex,
-            `<span class="${pillClass} px-2 py-0 rounded-full font-semibold drop-shadow-sm">${displayValue}</span>`
+            `<span class="custom-input-pill ${pillClass} px-2 py-0 rounded-full font-semibold drop-shadow-sm">${displayValue}</span>`
         );
     }
 
     return result;
 });
 
+const strippedHTML = computed(() => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(filledHTML.value, "text/html");
+
+    // strip styles from all elements
+    doc.body.querySelectorAll("*").forEach((el) => {
+        el.removeAttribute("style");
+
+        // replace <hr data-template-split> with ---- divider
+        if (el.tagName === "HR" && el.hasAttribute("data-template-split")) {
+            const divider = doc.createElement("div");
+            divider.textContent = "------------------------------------------";
+            el.replaceWith(divider);
+        }
+
+        // replace <div data-template-split> with vertical spacing
+        if (el.tagName === "DIV" && el.hasAttribute("data-template-split")) {
+            const spacer = doc.createElement("br");
+            el.replaceWith(spacer);
+        }
+    });
+
+    // replace headings with paragraphs
+    doc.body.querySelectorAll("h1", "h2", "h3").forEach((h) => {
+        const newParagraph = doc.createElement("p");
+        newParagraph.textContent = h.textContent;
+        h.replaceWith(newParagraph);
+    });
+
+    // replace empty <p></p> with <p>&nbsp;</p>
+    doc.body.querySelectorAll("p").forEach((p) => {
+        if (!p.textContent.trim()) {
+            p.innerHTML = "&nbsp;";
+        }
+    });
+
+    return doc.body.innerHTML;
+});
+
 const launchPlaintextEmail = () => {
-    // 1) grab raw HTML
+    // get raw HTML
     const rawHTML = filledHTML.value;
 
-    // 2) split on divider markers
-    //    then trim + drop any pieces that end up empty
+    // split on divider markers then trim + drop any pieces that end up empty
     const htmlSections = rawHTML
         .split(
             /<hr[^>]*data-template-split[^>]*>|<div[^>]*data-template-split[^>]*>/gi
@@ -248,7 +298,7 @@ const launchPlaintextEmail = () => {
         .map((s) => s.trim())
         .filter((s) => s !== "");
 
-    // 3) walk the DOM, preserving all intra-template newlines
+    // walk the DOM, preserving all intra-template newlines
     const walk = (node) => {
         let text = "";
         node.childNodes.forEach((child) => {
@@ -269,8 +319,7 @@ const launchPlaintextEmail = () => {
         return text;
     };
 
-    // 4) convert each chunk to plaintext, trim only at the very ends,
-    //    then filter out any that somehow became empty
+    // convert each chunk to plaintext, trim only at the very ends, then filter out any that somehow became empty
     const textSections = htmlSections
         .map((chunk) => {
             const container = document.createElement("div");
@@ -280,12 +329,14 @@ const launchPlaintextEmail = () => {
         })
         .filter((txt) => txt.trim() !== ""); // second‐pass filter
 
-    // 5) join with custom divider
+    // join with custom divider
     const body = textSections.join(
         "\n\n------------------------------------------\n\n"
     );
 
-    // 6) fire off the mailto
+    console.log(body);
+
+    // fire mailto
     const mailto =
         `mailto:?subject=${encodeURIComponent(subject.value)}` +
         `&body=${encodeURIComponent(body)}`;

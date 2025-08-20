@@ -1,5 +1,4 @@
 <!-- pages/TemplateTab.vue -->
-<!-- TODO: add a way to delete all templates(?) -->
 <template>
     <div
         class="flex justify-center bg-white"
