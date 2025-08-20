@@ -136,6 +136,10 @@ input[type="checkbox"] {
 
 input[type="checkbox"] + label,
 li:has(input[type="checkbox"]),
-div:has(input[type="checkbox"]) {
+div > input[type="checkbox"] {
     @apply cursor-pointer;
+}
+
+li.unformatted-ul-li::marker {
+    content: "- " !important;
 }

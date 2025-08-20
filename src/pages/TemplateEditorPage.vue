@@ -188,7 +188,7 @@ const createTemplate = () => {
         const cleanedSection =
             newTemplate.section.trim() || "Uncategorized Templates";
 
-        // Only add if it doesn't exist already
+        // only add if doesn't exist already
         if (!existingSections.includes(cleanedSection)) {
             existingSections.push(cleanedSection);
         }

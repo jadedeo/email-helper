@@ -269,6 +269,11 @@ const strippedHTML = computed(() => {
         }
     });
 
+    // add new class for styling purposes
+    doc.body.querySelectorAll("ul li").forEach((li) => {
+        li.classList.add("unformatted-ul-li");
+    });
+
     // replace headings with paragraphs
     doc.body.querySelectorAll("h1", "h2", "h3").forEach((h) => {
         const newParagraph = doc.createElement("p");
@@ -299,7 +304,7 @@ const launchPlaintextEmail = () => {
         .filter((s) => s !== "");
 
     // walk the DOM, preserving all intra-template newlines
-    const walk = (node) => {
+    const walk = (node, depth = 0) => {
         let text = "";
         node.childNodes.forEach((child) => {
             if (child.nodeType === Node.TEXT_NODE) {
@@ -308,9 +313,30 @@ const launchPlaintextEmail = () => {
                 const tag = child.tagName.toLowerCase();
                 if (tag === "br") {
                     text += "\n";
+                } else if (tag === "ul") {
+                    // unordered list
+                    text += "\n";
+                    child.querySelectorAll(":scope > li").forEach((li) => {
+                        text +=
+                            " ".repeat(depth * 2) + "- " + walk(li, depth + 1);
+                    });
+                    text += "\n";
+                } else if (tag === "ol") {
+                    // ordered list
+                    text += "\n";
+                    child.querySelectorAll(":scope > li").forEach((li, idx) => {
+                        text +=
+                            " ".repeat(depth * 2) +
+                            `${idx + 1}. ` +
+                            walk(li, depth + 1);
+                    });
+                    text += "\n";
+                } else if (tag === "li") {
+                    // should be handled by parent <ul>/<ol>, but keep safe fallback
+                    text += walk(child, depth);
                 } else {
                     text += walk(child);
-                    if (["p", "div", "section", "li"].includes(tag)) {
+                    if (["p", "div", "section"].includes(tag)) {
                         text += "\n";
                     }
                 }
@@ -353,15 +379,15 @@ const copyFormattedEmail = async () => {
                 // style <hr> consistently
                 el.style.border = "none";
                 el.style.borderTop = "1px solid #ccc";
-                el.style.margin = "1.5em 0";
+                el.style.margin = "0 0";
             } else {
                 // add vertical spacing for <div data-template-split>
                 const spacer = document.createElement("div");
                 spacer.innerHTML = "&nbsp;";
                 spacer.style.display = "block";
-                spacer.style.lineHeight = "1.5em";
-                spacer.style.marginTop = "0.75em";
-                spacer.style.marginBottom = "0.75em";
+                spacer.style.lineHeight = "0.5em";
+                spacer.style.marginTop = "0.5em";
+                spacer.style.marginBottom = "0.5em";
                 el.replaceWith(spacer);
             }
         });
@@ -374,7 +400,7 @@ const copyFormattedEmail = async () => {
             if (p.innerHTML.trim() === "") {
                 p.innerHTML = "&nbsp;";
             }
-            p.style.margin = "0 0 1em 0"; // give all p tags bottom spacing
+            p.style.margin = "0 0 0.5em 0"; // give all p tags bottom spacing
         });
 
         const wrappedHTML = `
