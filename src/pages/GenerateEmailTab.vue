@@ -45,22 +45,17 @@
                     <div class="flex gap-2">
                         <input
                             type="text"
+                            id="search-templates-input"
                             v-model="searchQuery"
                             placeholder="Search for templates"
                             class="standard"
+                            autofocus
                         />
-                        <!-- <Button label="Search" @click="handleSearch" /> -->
                     </div>
                 </section>
                 <hr v-if="hasCoreTemplates && hasSalutations" />
 
                 <div class="flex flex-col gap-5">
-                    <!--  v-if="
-                            orderedSections.length &&
-                            hasCoreTemplates &&
-                            hasSalutations
-                        "
-                        v-for="(section, index) in orderedSections" -->
                     <section
                         v-if="
                             visibleSections.length &&
@@ -74,11 +69,6 @@
                         <h3 class="font-semibold mb-2">
                             {{ section }}
                         </h3>
-                        <!-- :class="
-                                index < orderedSections.length - 1
-                                    ? '!mb-4'
-                                    : ''
-                            " -->
                         <ul
                             class="flex flex-col gap-2 !m-0 !p-0"
                             :class="
@@ -87,8 +77,6 @@
                                     : ''
                             "
                         >
-                            <!-- v-for="template in sectionTemplates[section] ||
-                                []" -->
                             <li
                                 v-for="template in filteredSectionTemplates[
                                     section
@@ -107,16 +95,6 @@
                                 }}</label>
                             </li>
                         </ul>
-
-                        <!-- v-if="
-                                index < populatedSections.length - 1 &&
-                                templates.filter(
-                                    (template) =>
-                                        template.section !== 'Salutations'
-                                ).length > 0 &&
-                                hasCoreTemplates &&
-                                hasSalutations
-                            " -->
                         <hr
                             v-if="
                                 index < visibleSections.length - 1 &&
@@ -164,6 +142,7 @@ const templates = ref([]);
 const sections = ref([]);
 const selectedTemplates = ref([]);
 const searchQuery = ref("");
+const norm = (s) => (s || "").toString().toLowerCase().trim();
 
 onMounted(async () => {
     const { templates: t, sections: s } = await loadTemplatesAndSections();
@@ -236,33 +215,8 @@ const disableNext = computed(() => {
     return selectedTemplates.value.length == 0;
 });
 
-watch(searchQuery, (oldSearchQuery, newSearchQuery) => {
-    if (oldSearchQuery === newSearchQuery) {
-        return;
-    } else {
-        handleSearch();
-    }
-});
-
-const handleSearch = () => {
-    console.log("search for", searchQuery.value);
-
-    // if found in section, return entire section
-    // from sections not already returned, search template titles
-    // if found in template title(s), display section name & then found template(s)
-    // uncategorized templates section should always be displayed last
-};
-
-// ---------------
-
-// remove the watch() and handleSearch()
-// add these helpers + computed:
-
-const norm = (s) => (s || "").toString().toLowerCase().trim();
-
 const visibleSections = computed(() => {
-    // base: same ordering you already use
-    const allOrdered = orderedSections.value.slice(); // e.g., ["Rules", "Fees", ..., "Uncategorized Templates"]
+    const allOrdered = orderedSections.value.slice();
     const q = norm(searchQuery.value);
 
     if (!q) return allOrdered;
@@ -271,7 +225,7 @@ const visibleSections = computed(() => {
     const partialMatches = [];
     const used = new Set();
 
-    // 1) Section-name matches → whole section
+    // section-name matches, display whole section
     for (const section of allOrdered) {
         if (norm(section).includes(q)) {
             fullMatches.push(section);
@@ -279,7 +233,7 @@ const visibleSections = computed(() => {
         }
     }
 
-    // 2) From remaining sections, match template titles
+    // from remaining sections, match template titles
     for (const section of allOrdered) {
         if (used.has(section)) continue;
         const templatesInSection = (
@@ -290,7 +244,7 @@ const visibleSections = computed(() => {
         }
     }
 
-    // 3) Combine; ensure "Uncategorized Templates" is last if present
+    // combine results, ensure "Uncategorized Templates" is last if present
     const combined = [...fullMatches, ...partialMatches];
 
     const U = "Uncategorized Templates";
@@ -301,13 +255,14 @@ const visibleSections = computed(() => {
 // map of templates that should render for each visible section
 const filteredSectionTemplates = computed(() => {
     const q = norm(searchQuery.value);
-    if (!q) return sectionTemplates.value; // show all like today
+    // if no query, show all
+    if (!q) return sectionTemplates.value;
 
     const out = {};
     const U = "Uncategorized Templates";
     const isSectionFullMatch = new Set();
 
-    // mark sections that matched by name (to include all of their templates)
+    // include all templates for all sections containing match
     for (const s of orderedSections.value) {
         if (norm(s).includes(q)) isSectionFullMatch.add(s);
     }
@@ -315,11 +270,11 @@ const filteredSectionTemplates = computed(() => {
     for (const section of visibleSections.value) {
         const all = sectionTemplates.value[section] || [];
         out[section] = isSectionFullMatch.has(section)
-            ? all // full section
-            : all.filter((t) => norm(t.title).includes(q)); // only matching titles
+            ? all // display all templates for section
+            : all.filter((t) => norm(t.title).includes(q)); // disply only titles with match
     }
 
-    // Always keep Uncategorized last if it exists in the result
+    // keep "Uncategorized" last if it exists in the result
     if (out[U]) {
         const { [U]: uncategorized, ...rest } = out;
         return { ...rest, [U]: uncategorized };
