@@ -643,7 +643,6 @@ const handleImportTemplates = () => {
             });
         };
     } catch (error) {
-        // console.error("failed to import templates:", error);
         importErrorMessage.value = ["Error importing templates", error];
         isModalOpen.value = true;
     }

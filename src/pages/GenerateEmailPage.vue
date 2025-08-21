@@ -88,7 +88,7 @@
             <Button
                 label="Back to template selection"
                 variant="redLink"
-                @button-click="isModalOpen = true"
+                @button-click="handleBackToTemplateSection"
             />
             <div class="flex justify-end gap-3">
                 <transition name="fade">
@@ -124,17 +124,38 @@
             </div>
         </div>
     </div>
-    <Modal v-if="isModalOpen" @close="isModalOpen = false">
-        <template #title> You're about to lose all progress. </template>
+    <Modal v-if="isModalOpen" @close="handleCloseModal">
+        <template #title>
+            <template v-if="modalType === 'backToTemplateSection'">
+                You're about to lose all progress.
+            </template>
+            <template v-else-if="modalType === 'copyError'">
+                {{ copyErrorMessage[0] }}
+            </template>
+        </template>
+
+        <template #body v-if="modalType === 'copyError'">{{
+            copyErrorMessage[1]
+        }}</template>
 
         <template #footer>
-            <Button
-                label="Discard email"
-                variant="grayFilled"
-                @button-click="handleConfirmDiscardEmail"
-            >
-                <DeleteOutlineIcon fillColor="#e7000b" :size="18" />
-            </Button>
+            <template v-if="modalType === 'backToTemplateSection'">
+                <Button
+                    label="Discard email"
+                    variant="grayFilled"
+                    @button-click="handleConfirmDiscardEmail"
+                >
+                    <DeleteOutlineIcon fillColor="#e7000b" :size="18" />
+                </Button>
+            </template>
+            <template v-else-if="modalType === 'copyError'">
+                <Button
+                    label="OK"
+                    variant="grayFilled"
+                    class="!text-gray-700"
+                    @button-click="handleCloseModal"
+                />
+            </template>
         </template>
     </Modal>
 </template>
@@ -169,6 +190,8 @@ const inputValues = ref({});
 const showToast = ref(false);
 const isModalOpen = ref(false);
 const isFormatted = ref(true);
+const copyErrorMessage = ref([]);
+const modalType = ref("");
 
 // console.log("Selected templates:", props.templates);
 
@@ -419,8 +442,12 @@ const copyFormattedEmail = async () => {
         showToast.value = true;
         setTimeout(() => (showToast.value = false), 2000);
     } catch (error) {
-        console.error("Clipboard copy failed:", error);
-        alert("Could not copy email. Please try again.");
+        copyErrorMessage.value = [
+            "Copy to clipboard failed",
+            "Please try again.",
+        ];
+        modalType.value = "copyError";
+        isModalOpen.value = true;
     }
 };
 
@@ -436,6 +463,17 @@ const handleConfirmDiscardEmail = () => {
     console.log("back to template selection");
     isModalOpen.value = false;
     emit("navigate-to-generate-tab");
+};
+
+const handleBackToTemplateSection = () => {
+    isModalOpen.value = true;
+    modalType.value = "backToTemplateSection";
+};
+
+const handleCloseModal = () => {
+    isModalOpen.value = false;
+    modalType.value = "";
+    copyErrorMessage.value = [];
 };
 </script>
 

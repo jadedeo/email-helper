@@ -56,7 +56,7 @@
             </div>
         </div>
     </div>
-    <Modal v-if="isModalOpen" @close="isModalOpen = false">
+    <Modal v-if="isModalOpen" @close="handleCloseModal">
         <template #title>
             <template v-if="modalType === 'delete'">
                 You are about to permanently delete the
@@ -65,7 +65,14 @@
             <template v-else-if="modalType === 'exitWithoutSaving'">
                 You're about to lose all unsaved changes.
             </template>
+            <template v-else-if="modalType === 'createSaveError'">
+                {{ createSaveErrorMessage[0] }}
+            </template>
         </template>
+
+        <template #body v-if="modalType === 'createSaveError'">{{
+            createSaveErrorMessage[1]
+        }}</template>
 
         <template #footer>
             <template v-if="modalType === 'delete'">
@@ -85,6 +92,14 @@
                 >
                     <DeleteOutlineIcon fillColor="#e7000b" :size="18" />
                 </Button>
+            </template>
+            <template v-else-if="modalType === 'createSaveError'">
+                <Button
+                    label="OK"
+                    variant="grayFilled"
+                    class="!text-gray-700"
+                    @button-click="handleCloseModal"
+                />
             </template>
         </template>
     </Modal>
@@ -116,6 +131,7 @@ const section = ref("Uncategorized Templates");
 const showInfoBox = ref(true);
 const isModalOpen = ref(false);
 const modalType = ref("");
+const createSaveErrorMessage = ref([]);
 
 onMounted(() => {
     if (props.templateToEdit) {
@@ -137,7 +153,12 @@ const saveTemplate = () => {
         typeof chrome === "undefined" ||
         !chrome.storage
     ) {
-        console.error("Invalid original template or missing Chrome APIs.");
+        createSaveErrorMessage.value = [
+            "Error saving template",
+            "Invalid original template or missing Chrome APIs. Please try again.",
+        ];
+        modalType.value = "createSaveError";
+        isModalOpen.value = true;
         return;
     }
 
@@ -166,7 +187,12 @@ const saveTemplate = () => {
 
 const createTemplate = () => {
     if (typeof chrome === "undefined" || !chrome.storage) {
-        console.error("Chrome storage is not available.");
+        createSaveErrorMessage.value = [
+            "Error creating template",
+            "Chrome storage is not available. Please try again.",
+        ];
+        modalType.value = "createSaveError";
+        isModalOpen.value = true;
         return;
     }
 
@@ -245,7 +271,7 @@ const handleDiscardChanges = () => {
 
 const handleConfirmDeleteTemplate = () => {
     if (!props.templateToEdit?.id) {
-        console.error("No template to delete.");
+        // console.error("No template to delete.");
         return;
     }
 
@@ -258,14 +284,22 @@ const handleConfirmDeleteTemplate = () => {
             (template) => template.id !== templateToDelete
         );
 
-        chrome.storage.local.set({ templates: updatedTemplates }, () => {
+        chrome.storage.local.set(
+            { templates: updatedTemplates } /*() => {
             console.log("Template deleted.");
-        });
+        }*/
+        );
     });
 
     isModalOpen.value = false;
     modalType.value = "";
     emit("navigate-to-templates-tab");
     // emit("close");
+};
+
+const handleCloseModal = () => {
+    isModalOpen.value = false;
+    createSaveErrorMessage.value = [];
+    modalType.value = "";
 };
 </script>

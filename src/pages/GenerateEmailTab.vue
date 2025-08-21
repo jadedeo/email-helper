@@ -125,7 +125,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, computed } from "vue";
 import {
     loadTemplatesAndSections,
     getNonSalutations,
