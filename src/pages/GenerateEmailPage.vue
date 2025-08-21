@@ -4,7 +4,7 @@
         <div class="flex gap-3 flex-1 overflow-hidden">
             <!-- LEFT PANEL -->
             <div
-                class="bg-white rounded-md h-full p-5 flex flex-col flex-[2] gap-3 overflow-hidden"
+                class="bg-white rounded-md h-full p-5 flex flex-col flex-[3] gap-5 overflow-hidden"
             >
                 <!-- SELECTIONS -->
                 <section class="flex flex-col gap-2">
@@ -42,7 +42,7 @@
                         <input
                             type="text"
                             class="standard"
-                            v-model="inputValues[label]"
+                            v-model="inputValuesRaw[label]"
                             :id="label"
                             :placeholder="`Enter ${label.toLowerCase()}`"
                         />
@@ -52,10 +52,10 @@
 
             <!-- RIGHT PANEL -->
             <div
-                class="bg-white rounded-md h-full w-full flex flex-col flex-[5]"
+                class="bg-white rounded-md h-full w-full flex flex-col flex-[6]"
             >
                 <section class="flex flex-col p-5 gap-3 flex-1 overflow-auto">
-                    <div>
+                    <div v-if="!isFormatted">
                         <label for="input-subject"></label>
                         <input
                             v-model="subject"
@@ -66,7 +66,7 @@
                         />
                     </div>
 
-                    <hr />
+                    <hr v-if="!isFormatted" />
 
                     <!-- RIGHT PANEL Preview -->
                     <div
@@ -185,7 +185,8 @@ const subject = computed(() => {
 });
 
 let extractedHTML = ref("");
-const inputValues = ref({});
+const inputValuesRaw = ref({});
+// const inputValues = ref({});
 
 const showToast = ref(false);
 const isModalOpen = ref(false);
@@ -231,8 +232,8 @@ onMounted(() => {
     const placeholderRegex =
         /<custom-input\s+label="([^"]+)"\s*><\/custom-input>/g;
 
-    const uniqueLabels = new Set();
-    uniqueLabels.add("Permit Number");
+    const uniqueLabels = new Set(["Permit Number"]);
+    // uniqueLabels.add("Permit Number");
 
     let match;
     while ((match = placeholderRegex.exec(extractedHTML.value)) !== null) {
@@ -240,8 +241,19 @@ onMounted(() => {
     }
 
     uniqueLabels.forEach((label) => {
-        inputValues.value[label] = "";
+        inputValuesRaw.value[label] = "";
     });
+});
+
+const inputValues = computed(() => {
+    // Clone to avoid mutating the source
+    const values = { ...inputValuesRaw.value };
+
+    if (isFormatted.value) {
+        delete values["Permit Number"];
+    }
+
+    return values;
 });
 
 const filledHTML = computed(() => {
@@ -452,11 +464,15 @@ const copyFormattedEmail = async () => {
 };
 
 const disableCopyAndDraft = computed(() => {
-    const allInputsFilled = Object.values(inputValues.value).every(
-        (val) => val.trim() !== ""
-    );
+    // const allInputsFilled = Object.values(inputValues.value).every(
+    //     (val) => val.trim() !== ""
+    // );
 
-    return !allInputsFilled;
+    // return !allInputsFilled;
+
+    return !Object.entries(inputValues.value).every(
+        ([_, val]) => val.trim() !== ""
+    );
 });
 
 const handleConfirmDiscardEmail = () => {

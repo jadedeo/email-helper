@@ -3,18 +3,17 @@
     <node-view-wrapper class="custom-input">
         <template v-if="isEditing">
             <div
-                class="flex flex-col gap-1 bg-white drop-shadow-sm rounded-t-md p-2 items-center"
+                class="flex flex-col gap-1 bg-white drop-shadow-sm rounded-t-md py-1 px-2 items-center"
             >
                 <div class="flex items-center">
                     <div
-                        class="flex items-center gap-2 h-fit rounded-full border-lime-500 border-1 border-solid px-2"
+                        class="flex items-center gap-1 h-fit rounded-full border-lime-500 border-1 border-solid px-2"
                     >
                         <TextIcon fillColor="#000000" :size="16" />
                         <input
                             v-model="inputValue"
                             class="input focus:outline-none capitalize"
                             placeholder="Custom input field"
-                            autofocus
                         />
                     </div>
 
