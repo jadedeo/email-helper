@@ -1,5 +1,4 @@
 <!-- pages/GenerateEmailPage.vue -->
-<!-- TODO: toggle preview based on formatting -->
 <template>
     <div class="w-full bg-gray-100 py-3 px-6 flex flex-col gap-3 h-dvh">
         <div class="flex gap-3 flex-1 overflow-hidden">

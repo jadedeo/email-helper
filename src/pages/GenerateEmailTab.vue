@@ -1,5 +1,4 @@
 <!-- pages/GenerateEmailTab.vue -->
-<!-- TODO: add search -->
 <template>
     <div
         class="flex justify-center bg-white min-h-[85%]"
@@ -50,36 +49,50 @@
                             placeholder="Search for templates"
                             class="standard"
                         />
-                        <Button label="Search" @click="handleSearch" />
+                        <!-- <Button label="Search" @click="handleSearch" /> -->
                     </div>
                 </section>
                 <hr v-if="hasCoreTemplates && hasSalutations" />
 
                 <div class="flex flex-col gap-5">
-                    <section
-                        v-if="
+                    <!--  v-if="
                             orderedSections.length &&
                             hasCoreTemplates &&
                             hasSalutations
                         "
-                        v-for="(section, index) in orderedSections"
+                        v-for="(section, index) in orderedSections" -->
+                    <section
+                        v-if="
+                            visibleSections.length &&
+                            hasCoreTemplates &&
+                            hasSalutations
+                        "
+                        v-for="(section, index) in visibleSections"
                         :key="section"
                         class="px-6"
                     >
                         <h3 class="font-semibold mb-2">
                             {{ section }}
                         </h3>
+                        <!-- :class="
+                                index < orderedSections.length - 1
+                                    ? '!mb-4'
+                                    : ''
+                            " -->
                         <ul
                             class="flex flex-col gap-2 !m-0 !p-0"
                             :class="
-                                index < orderedSections.length - 1
+                                index < visibleSections.length - 1
                                     ? '!mb-4'
                                     : ''
                             "
                         >
+                            <!-- v-for="template in sectionTemplates[section] ||
+                                []" -->
                             <li
-                                v-for="template in sectionTemplates[section] ||
-                                []"
+                                v-for="template in filteredSectionTemplates[
+                                    section
+                                ] || []"
                                 :key="template.id"
                                 class="flex items-center gap-2 w-full"
                             >
@@ -95,13 +108,18 @@
                             </li>
                         </ul>
 
-                        <hr
-                            v-if="
+                        <!-- v-if="
                                 index < populatedSections.length - 1 &&
                                 templates.filter(
                                     (template) =>
                                         template.section !== 'Salutations'
                                 ).length > 0 &&
+                                hasCoreTemplates &&
+                                hasSalutations
+                            " -->
+                        <hr
+                            v-if="
+                                index < visibleSections.length - 1 &&
                                 hasCoreTemplates &&
                                 hasSalutations
                             "
@@ -129,7 +147,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import {
     loadTemplatesAndSections,
     getNonSalutations,
@@ -218,6 +236,14 @@ const disableNext = computed(() => {
     return selectedTemplates.value.length == 0;
 });
 
+watch(searchQuery, (oldSearchQuery, newSearchQuery) => {
+    if (oldSearchQuery === newSearchQuery) {
+        return;
+    } else {
+        handleSearch();
+    }
+});
+
 const handleSearch = () => {
     console.log("search for", searchQuery.value);
 
@@ -226,6 +252,80 @@ const handleSearch = () => {
     // if found in template title(s), display section name & then found template(s)
     // uncategorized templates section should always be displayed last
 };
+
+// ---------------
+
+// remove the watch() and handleSearch()
+// add these helpers + computed:
+
+const norm = (s) => (s || "").toString().toLowerCase().trim();
+
+const visibleSections = computed(() => {
+    // base: same ordering you already use
+    const allOrdered = orderedSections.value.slice(); // e.g., ["Rules", "Fees", ..., "Uncategorized Templates"]
+    const q = norm(searchQuery.value);
+
+    if (!q) return allOrdered;
+
+    const fullMatches = [];
+    const partialMatches = [];
+    const used = new Set();
+
+    // 1) Section-name matches → whole section
+    for (const section of allOrdered) {
+        if (norm(section).includes(q)) {
+            fullMatches.push(section);
+            used.add(section);
+        }
+    }
+
+    // 2) From remaining sections, match template titles
+    for (const section of allOrdered) {
+        if (used.has(section)) continue;
+        const templatesInSection = (
+            sectionTemplates.value[section] || []
+        ).filter((t) => norm(t.title).includes(q));
+        if (templatesInSection.length) {
+            partialMatches.push(section);
+        }
+    }
+
+    // 3) Combine; ensure "Uncategorized Templates" is last if present
+    const combined = [...fullMatches, ...partialMatches];
+
+    const U = "Uncategorized Templates";
+    const withoutU = combined.filter((s) => s !== U);
+    return combined.includes(U) ? [...withoutU, U] : withoutU;
+});
+
+// map of templates that should render for each visible section
+const filteredSectionTemplates = computed(() => {
+    const q = norm(searchQuery.value);
+    if (!q) return sectionTemplates.value; // show all like today
+
+    const out = {};
+    const U = "Uncategorized Templates";
+    const isSectionFullMatch = new Set();
+
+    // mark sections that matched by name (to include all of their templates)
+    for (const s of orderedSections.value) {
+        if (norm(s).includes(q)) isSectionFullMatch.add(s);
+    }
+
+    for (const section of visibleSections.value) {
+        const all = sectionTemplates.value[section] || [];
+        out[section] = isSectionFullMatch.has(section)
+            ? all // full section
+            : all.filter((t) => norm(t.title).includes(q)); // only matching titles
+    }
+
+    // Always keep Uncategorized last if it exists in the result
+    if (out[U]) {
+        const { [U]: uncategorized, ...rest } = out;
+        return { ...rest, [U]: uncategorized };
+    }
+    return out;
+});
 </script>
 
 <style scoped></style>
