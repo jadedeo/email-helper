@@ -226,7 +226,6 @@ const createTemplate = () => {
     });
 
     emit("navigate-to-templates-tab");
-    // emit("close");
 };
 
 const disableCreateTemplate = computed(function () {
@@ -254,8 +253,6 @@ const hasUnsavedChanges = computed(() => {
 const handleCancelEditing = () => {
     if (!hasUnsavedChanges.value) {
         emit("navigate-to-templates-tab");
-
-        // emit("close");
     } else {
         modalType.value = "exitWithoutSaving";
         isModalOpen.value = true;
@@ -265,8 +262,6 @@ const handleCancelEditing = () => {
 const handleDiscardChanges = () => {
     modalType.value = "";
     emit("navigate-to-templates-tab");
-
-    // emit("close");
 };
 
 const handleConfirmDeleteTemplate = () => {
@@ -290,7 +285,6 @@ const handleConfirmDeleteTemplate = () => {
     isModalOpen.value = false;
     modalType.value = "";
     emit("navigate-to-templates-tab");
-    // emit("close");
 };
 
 const handleCloseModal = () => {

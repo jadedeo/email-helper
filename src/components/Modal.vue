@@ -18,7 +18,7 @@
                     />
                 </div>
 
-                <h2 v-if="$slots.title" class="text-lg font-medium px-4">
+                <h2 v-if="$slots.title" class="text-lg font-medium px-8">
                     <slot name="title" />
                 </h2>
 

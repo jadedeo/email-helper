@@ -654,7 +654,6 @@ const handleSectionHover = (sectionName) => {
 
 const clearHoveredSection = () => {
     hoveredSection.value = null;
-    focusedSection.value = null;
 };
 
 const handleDeleteSection = () => {
@@ -683,7 +682,6 @@ const handleConfirmDeleteSectionWithTemplates = () => {
                     isModalOpen.value = false;
                     focusedSection.value = null;
                     loadTemplates();
-                    // emit("close");
                 });
             });
         });
@@ -714,8 +712,6 @@ const handleConfirmDeleteSection = () => {
                     isModalOpen.value = false;
                     focusedSection.value = null;
                     loadTemplates();
-                    // emit("navigate-to-templates-tab");
-                    // emit("close");
                 });
             });
         });
