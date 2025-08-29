@@ -128,7 +128,7 @@
                                 <h3>{{ sectionName }}</h3>
                                 <DeleteOutlineIcon
                                     v-if="hoveredSection === sectionName"
-                                    @click="handleDeleteSection"
+                                    @click="handleDeleteSection(sectionName)"
                                     fillColor="#e7000b"
                                     :size="18"
                                     class="hover:cursor-pointer"
@@ -644,19 +644,21 @@ const handleCloseModal = () => {
     importErrorMessage.value = [];
     deleteAllTemplatesErrorMessage.value = [];
     clearHoveredSection();
+    focusedSection.value = null;
+    console.log(hoveredSection.value, focusedSection.value);
 };
 
 const handleSectionHover = (sectionName) => {
     if (sectionName == "Uncategorized Templates") return;
     hoveredSection.value = sectionName;
-    focusedSection.value = sectionName;
 };
 
 const clearHoveredSection = () => {
     hoveredSection.value = null;
 };
 
-const handleDeleteSection = () => {
+const handleDeleteSection = (sectionName) => {
+    focusedSection.value = sectionName;
     isModalOpen.value = true;
 };
 
