@@ -53,8 +53,4 @@ const emit = defineEmits(["close"]);
 const closeModal = () => emit("close");
 </script>
 
-<style scoped>
-.modal {
-    background-color: rgba(85, 97, 108, 0.25);
-}
-</style>
+<style scoped></style>

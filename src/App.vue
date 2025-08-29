@@ -110,7 +110,6 @@ const viewMap = {
                 onClose: () => {
                     // force chrome.storage.set to complete before navigating
                     chrome.storage.local.get("templates", (result) => {
-                        console.log("latest templates", result.templates);
                         currentView.value = "templates";
                         templateToEdit.value = null;
                     });
@@ -125,11 +124,6 @@ const currentComponent = computed(() => viewMap[currentView.value]);
 const showTabs = computed(() => {
     return ["generate", "templates"].includes(currentView.value);
 });
-
-const displayPage = (page) => {
-    console.log("display ", page);
-    currentView.value = page;
-};
 </script>
 
 <style scoped></style>

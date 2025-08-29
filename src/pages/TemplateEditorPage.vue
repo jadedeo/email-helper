@@ -271,7 +271,7 @@ const handleDiscardChanges = () => {
 
 const handleConfirmDeleteTemplate = () => {
     if (!props.templateToEdit?.id) {
-        // console.error("No template to delete.");
+        // no template to delete
         return;
     }
 
@@ -284,11 +284,7 @@ const handleConfirmDeleteTemplate = () => {
             (template) => template.id !== templateToDelete
         );
 
-        chrome.storage.local.set(
-            { templates: updatedTemplates } /*() => {
-            console.log("Template deleted.");
-        }*/
-        );
+        chrome.storage.local.set({ templates: updatedTemplates });
     });
 
     isModalOpen.value = false;

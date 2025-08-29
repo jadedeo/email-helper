@@ -10,16 +10,24 @@
                 <section class="flex flex-col gap-2">
                     <h3>Selections</h3>
                     <div class="flex gap-1 flex-wrap">
-                        <span
-                            class="bg-lime-50 border-1 border-solid border-lime-500 rounded-md px-2 py-1 min-w-fit"
-                            v-for="template in props.templates.filter(
+                        <!-- v-for="template in props.templates.filter(
                                 (template) => template.section !== 'Salutations'
-                            )"
+                            )" -->
+                        <span
+                            class="bg-lime-50 border-1 border-solid border-lime-500 rounded-md px-2 py-1 min-w-fit text-[11px]"
+                            v-for="template in safeTemplates"
+                            :key="template.id"
                         >
                             {{ template.title }}
                         </span>
                     </div>
                     <!-- TODO: make selections editable -->
+                    <!-- <Button
+                        variant="link"
+                        label="Edit"
+                        class="!w-fit"
+                        @click="handleEditSelections"
+                    /> -->
                 </section>
 
                 <hr />
@@ -109,7 +117,7 @@
                 <Button
                     v-if="isFormatted"
                     @button-click="copyFormattedEmail"
-                    label="Copy with Formatting"
+                    :label="copiedState ? 'Copied!' : 'Copy with Formatting'"
                     class="!w-[190px] !px-5"
                     :disabled="disableCopyAndDraft"
                 />
@@ -158,12 +166,18 @@
             </template>
         </template>
     </Modal>
+    <SelectionsModal
+        v-if="isSelectionsModalOpen"
+        :selected="templates"
+        @close="isSelectionsModalOpen = false"
+    />
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import Button from "../components/Button.vue";
 import Modal from "../components/Modal.vue";
+import SelectionsModal from "../components/SelectionsModal.vue";
 import DeleteOutlineIcon from "vue-material-design-icons/DeleteOutline.vue";
 
 import "../style.css";
@@ -172,10 +186,21 @@ const props = defineProps({
     templates: {
         type: Array,
         required: true,
+        default: () => [],
     },
 });
 
 const emit = defineEmits(["navigate-to-generate-tab"]);
+
+const safeTemplates = computed(() => {
+    return props.templates.filter(
+        (template) =>
+            template &&
+            typeof template === "object" &&
+            template.section !== "Salutations" &&
+            typeof template.title === "string"
+    );
+});
 
 const subject = computed(() => {
     const permit = inputValues.value["Permit Number"];
@@ -186,36 +211,36 @@ const subject = computed(() => {
 
 let extractedHTML = ref("");
 const inputValuesRaw = ref({});
-// const inputValues = ref({});
-
 const showToast = ref(false);
 const isModalOpen = ref(false);
+const isSelectionsModalOpen = ref(false);
 const isFormatted = ref(true);
+const copiedState = ref(false);
 const copyErrorMessage = ref([]);
 const modalType = ref("");
 
-// console.log("Selected templates:", props.templates);
-
 onMounted(() => {
-    const nonSalutationTemplates = props.templates.filter(
+    updateExtractedHTMLAndInputs(props.templates);
+});
+
+const updateExtractedHTMLAndInputs = (templates) => {
+    const nonSalutationTemplates = templates.filter(
         (template) => template.section !== "Salutations"
     );
-    const greeting = props.templates.find(
+    const greeting = templates.find(
         (template) =>
             template.title === "Greeting" && template.section === "Salutations"
     );
-    const signOff = props.templates.find(
+    const signOff = templates.find(
         (template) =>
             template.title === "Sign-off" && template.section === "Salutations"
     );
 
-    // build ordered array: greeting, core, sign-off
     const allTemplates = [];
     if (greeting) allTemplates.push(greeting);
     allTemplates.push(...nonSalutationTemplates);
     if (signOff) allTemplates.push(signOff);
 
-    // map -> body + (divider if not last)
     extractedHTML.value = allTemplates
         .map((tpl, i) => {
             let html = tpl.body;
@@ -233,22 +258,24 @@ onMounted(() => {
         /<custom-input\s+label="([^"]+)"\s*><\/custom-input>/g;
 
     const uniqueLabels = new Set(["Permit Number"]);
-    // uniqueLabels.add("Permit Number");
 
     let match;
     while ((match = placeholderRegex.exec(extractedHTML.value)) !== null) {
         uniqueLabels.add(match[1]);
     }
 
+    // reset input values
+    inputValuesRaw.value = {};
     uniqueLabels.forEach((label) => {
         inputValuesRaw.value[label] = "";
     });
-});
+};
 
 const inputValues = computed(() => {
-    // Clone to avoid mutating the source
+    // clone to avoid mutating source
     const values = { ...inputValuesRaw.value };
 
+    //remove "Permit Number" from inputs if formatted
     if (isFormatted.value) {
         delete values["Permit Number"];
     }
@@ -394,8 +421,6 @@ const launchPlaintextEmail = () => {
         "\n\n------------------------------------------\n\n"
     );
 
-    console.log(body);
-
     // fire mailto
     const mailto =
         `mailto:?subject=${encodeURIComponent(subject.value)}` +
@@ -451,8 +476,8 @@ const copyFormattedEmail = async () => {
             }),
         ]);
 
-        showToast.value = true;
-        setTimeout(() => (showToast.value = false), 2000);
+        copiedState.value = true;
+        setTimeout(() => (copiedState.value = false), 2000);
     } catch (error) {
         copyErrorMessage.value = [
             "Copy to clipboard failed",
@@ -464,19 +489,12 @@ const copyFormattedEmail = async () => {
 };
 
 const disableCopyAndDraft = computed(() => {
-    // const allInputsFilled = Object.values(inputValues.value).every(
-    //     (val) => val.trim() !== ""
-    // );
-
-    // return !allInputsFilled;
-
     return !Object.entries(inputValues.value).every(
         ([_, val]) => val.trim() !== ""
     );
 });
 
 const handleConfirmDiscardEmail = () => {
-    console.log("back to template selection");
     isModalOpen.value = false;
     emit("navigate-to-generate-tab");
 };
@@ -485,6 +503,10 @@ const handleBackToTemplateSection = () => {
     isModalOpen.value = true;
     modalType.value = "backToTemplateSection";
 };
+
+// const handleEditSelections = () => {
+//     isSelectionsModalOpen.value = true;
+// };
 
 const handleCloseModal = () => {
     isModalOpen.value = false;

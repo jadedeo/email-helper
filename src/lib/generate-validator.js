@@ -8,8 +8,6 @@ import { dirname, join } from "path";
 import Ajv from "ajv";
 import standaloneCode from "ajv/dist/standalone/index.js";
 
-// console.log("generating template-validator.mjs...");
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 

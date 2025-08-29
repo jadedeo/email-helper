@@ -109,7 +109,6 @@ const updateDefaultCustomInputs = (newInput) => {
 
         // dont add newinput if already present in defaults list
         if (options.includes(newInput)) {
-            // console.log("input already exists.");
             return;
         }
 

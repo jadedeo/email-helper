@@ -8,8 +8,6 @@
         <div
             class="tiptap-menu h-fit flex gap-1 items-center p-1 border-t-1 border-solid border-gray-200"
         >
-            <!-- TODO: add linking  -->
-            <!-- https://tiptap.dev/docs/ui-components/components/link-popover -->
             <Button
                 @click="editor?.chain().focus().toggleBold().run()"
                 :class="{ active: editor?.isActive('bold') }"
@@ -33,13 +31,14 @@
                 <UnderlineFormatIcon fillColor="#000000" :size="18" />
             </Button>
 
-            <Button
+            <!-- TODO: add linking  -->
+            <!-- <Button
                 @click="editor?.chain().focus().toggleUnderline().run()"
                 :class="{ active: editor?.isActive('underline') }"
                 variant="editormenuitem"
             >
                 <LinkVariantIcon fillColor="#000000" :size="18" />
-            </Button>
+            </Button> -->
 
             <Button
                 class="text-color-button"

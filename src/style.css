@@ -1,8 +1,8 @@
-/* TODO: add dark mode */
-/* TODO: use tailwind/@apply */
-
 @import "tailwindcss";
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+
+/* TODO: add dark mode */
+/* TODO: use tailwind/@apply */
 
 @layer base {
     hr {
@@ -37,7 +37,8 @@
     @apply min-w-[400px] min-h-fit mx-0 flex flex-col gap-8 w-[785px] h-[585px];
 }
 
-input[type="text"] {
+input[type="text"],
+input[type="url"] {
     @apply focus:outline-none;
 }
 
@@ -107,8 +108,6 @@ ol {
 
 ul li p,
 ol li p {
-    /* margin-top: 0.25em;
-    margin-bottom: 0.25em; */
     @apply my-[0.25em];
 }
 
@@ -142,4 +141,17 @@ div > input[type="checkbox"] {
 
 li.unformatted-ul-li::marker {
     content: "- " !important;
+}
+
+a {
+    color: blue;
+    cursor: pointer;
+    text-decoration: underline;
+}
+a:hover {
+    color: green;
+}
+
+.modal {
+    background-color: rgba(85, 97, 108, 0.25);
 }

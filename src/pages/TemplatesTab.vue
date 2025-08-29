@@ -438,7 +438,6 @@ const signOffTemplate = computed(() => {
 });
 
 const hasCoreTemplates = computed(() => {
-    // console.log(getNonSalutations(templates.value));
     return getNonSalutations(templates.value);
 });
 
@@ -557,7 +556,6 @@ const handleImportTemplates = () => {
 
     // check that file is JSON
     if (selectedFile.type !== "application/json") {
-        console.log("The file is not a JSON file.");
         importErrorMessage.value = [
             "Incorrect file format",
             "You may only upload JSON files",
@@ -565,7 +563,6 @@ const handleImportTemplates = () => {
         isModalOpen.value = true;
         return;
     }
-    // console.log("valid file type");
 
     const reader = new FileReader();
 
@@ -578,11 +575,7 @@ const handleImportTemplates = () => {
 
             // file content validation
             for (const template of importedTemplates) {
-                // console.log("looking at:", template.title);
-                if (validateTemplates(template)) {
-                    // console.log("SUCCESS");
-                } else if (!validateTemplates(template)) {
-                    // console.log("ERRORS 1:", validateTemplates.errors);
+                if (!validateTemplates(template)) {
                     importErrorMessage.value = [
                         "Invalid file contents",
                         "Please ensure uploaded templates contain the appropriate attributes (body, id, section & title)",
@@ -591,8 +584,6 @@ const handleImportTemplates = () => {
                     return;
                 }
             }
-
-            // console.log("all templates correct format");
 
             // continue if successful
             const templatesWithNewIds = importedTemplates.map((template) => ({
