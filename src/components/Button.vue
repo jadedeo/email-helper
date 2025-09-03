@@ -39,15 +39,15 @@ const computedClass = computed(() => {
         : "cursor-pointer opacity-100";
 
     const variants = {
-        filled: "w-full px-2 py-2 rounded-md bg-lime-700 text-white",
+        filled: "w-full px-2 py-2 rounded-md bg-sky-700 text-white",
         grayFilled:
             "w-full p-2 rounded-md bg-gray-50 text-red-600 border-1 border-gray-200",
         outlined:
-            "w-full p-2 rounded-md border border-lime-700 bg-lime-50 text-lime-700",
-        link: "underline underline-offset-2 text-lime-700 bg-transparent p-0",
+            "w-full p-2 rounded-md border border-sky-700 bg-sky-50 text-sky-700",
+        link: "underline underline-offset-2 text-sky-700 bg-transparent p-0",
         redLink:
             "underline underline-offset-2 text-red-600 bg-transparent px-0",
-        activetab: "w-full px-2 py-2 rounded-md bg-lime-200 text-lime-800",
+        activetab: "w-full px-2 py-2 rounded-md bg-sky-200 text-sky-800",
         inactivetab: "w-full px-2 py-2 rounded-md bg-gray-100 text-gray-500",
         editormenuitem: "rounded-full text-black hover:bg-gray-100 p-2",
     };

@@ -7,7 +7,7 @@
             >
                 <div class="flex items-center">
                     <div
-                        class="flex items-center gap-1 h-fit rounded-full border-lime-500 border-1 border-solid px-2"
+                        class="flex items-center gap-1 h-fit rounded-full border-sky-500 border-1 border-solid px-2"
                     >
                         <TextIcon fillColor="#000000" :size="16" />
                         <input
@@ -21,7 +21,7 @@
                         <Button
                             @click="apply"
                             label="Apply"
-                            class="!bg-transparent !text-lime-700"
+                            class="!bg-transparent !text-sky-700"
                         />
                     </div>
                 </div>
@@ -32,7 +32,7 @@
                         v-for="option in filteredOptions"
                         :key="option"
                         @click="selectOption(option)"
-                        class="cursor-pointer px-3 py-1 hover:bg-lime-100"
+                        class="cursor-pointer px-3 py-1 hover:bg-sky-100"
                     >
                         {{ option }}
                     </li>
@@ -42,7 +42,7 @@
 
         <template v-else>
             <div
-                class="bg-lime-50 border-solid border-1 border-lime-500 py-1 px-2 rounded-full"
+                class="bg-sky-50 border-solid border-1 border-sky-500 py-1 px-2 rounded-full"
                 @click="isEditing = true"
             >
                 <span class="label" contenteditable="false">

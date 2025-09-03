@@ -4,7 +4,7 @@
         class="infobox-component bg-gray-50 p-3 flex flex-col gap-2 rounded-md border-1 border-solid border-gray-100"
         :class="
             coloredBg
-                ? 'bg-lime-50 border-gray-200'
+                ? 'bg-sky-50 border-gray-200'
                 : 'bg-gray-5 border-gray-100'
         "
     >
@@ -13,7 +13,7 @@
                 class="flex gap-2"
                 :class="body ? 'font-bold' : 'text-gray-500'"
             >
-                <InformationIcon :size="18" fillColor="#4d7c0f" />{{ heading }}
+                <InformationIcon :size="18" fillColor="#0369a1" />{{ heading }}
             </h5>
             <CloseIcon
                 v-if="dismissable"

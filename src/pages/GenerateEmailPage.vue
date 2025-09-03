@@ -14,7 +14,7 @@
                                 (template) => template.section !== 'Salutations'
                             )" -->
                         <span
-                            class="bg-lime-50 border-1 border-solid border-lime-500 rounded-md px-2 py-1 min-w-fit text-[11px]"
+                            class="bg-sky-50 border-1 border-solid border-sky-500 rounded-md px-2 py-1 min-w-fit text-[11px]"
                             v-for="template in safeTemplates"
                             :key="template.id"
                         >
@@ -295,7 +295,7 @@ const filledHTML = computed(() => {
         const isEmpty = value.trim() === "";
         const pillClass = isEmpty
             ? "bg-white border border-red-400"
-            : "bg-white border border-lime-500";
+            : "bg-white border border-sky-500";
 
         const displayValue = isEmpty ? label : value;
 

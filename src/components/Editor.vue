@@ -111,7 +111,7 @@
                         .run()
                 "
                 variant="editormenuitem"
-                class="!border-solid border-1 border-lime-500 !py-1 !h-fit"
+                class="!border-solid border-1 border-sky-500 !py-1 !h-fit"
                 ><TextIcon fillColor="#000000" :size="16" />
                 Custom Input Field
             </Button>

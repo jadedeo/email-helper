@@ -81,7 +81,7 @@ input[type="file"]::before {
     display: inline-block;
     outline: none;
     -webkit-user-select: none;
-    @apply text-lime-700;
+    @apply text-sky-700;
 }
 
 input[type="file"]:active {
