@@ -46,16 +46,16 @@ For demo purposes, the following illustrates the process of running a browser ex
 
 1. Navigate to the 'Manage Extensions' page
 
-    ![Manage Extensions](/public/manageExtensions.png)
+    ![Manage Extensions](/public/readmeImages/manageExtensions.png)
 
 2. Toggle 'Developer Mode' on & select 'Load Unpacked'
 
-    ![Dev Mode & Load Unpacked](/public/loadUnpacked.png)
+    ![Dev Mode & Load Unpacked](/public/readmeImages/loadUnpacked.png)
 
 3. Navigate to the application folder within your file system & select the dist folder you just generated
 
-    ![Select dist](/public/selectDist.png)
+    ![Select dist](/public/readmeImages/selectDist.png)
 
 4. Find extension in toolbar & click to run (pin, if desired)
 
-    ![Launch Extension](/public/launchExtension.png)
+    ![Launch Extension](/public/readmeImages/launchExtension.png)
