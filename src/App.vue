@@ -1,6 +1,9 @@
 <!-- App.vue -->
 <template>
-    <div v-if="showTabs" class="flex justify-center">
+    <div
+        v-if="showTabs"
+        class="flex justify-center fixed top-0 bg-white w-full pb-5"
+    >
         <section v-if="showTabs" class="px-6 mt-6 w-full max-w-[550px]">
             <div
                 class="bg-gray-100 flex w-full rounded-md p-[1px] border-1 border-gray-100 border-solid"

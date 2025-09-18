@@ -16,9 +16,9 @@ _2025 MHCI Capstone_
 
 This extension is intended for desktop use. It utilizes Manifest 3 & is supported by Chromium browsers (Chrome, Edge, Opera, etc.)
 
-In order to use the mailTo feature, users must configure a default mail app for their desktop.
+The mailTo feature requires a users desktop mail app - if something other than the default app is desired, this should be configured in settings.
 
-To build and run the application locally, users must first install [npm & NodeJS](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm); they should follow the downloading instructions according to their operating system.
+To build and run the application locally, users must first install [npm & NodeJS](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) by following the downloading instructions according to their operating system. The following set-up instructions also assume the ability to use Git.
 
 ## Cloning Repository
 

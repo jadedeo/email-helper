@@ -1,7 +1,7 @@
 <!-- pages/GenerateEmailTab.vue -->
 <template>
     <div
-        class="flex justify-center bg-white min-h-[85%]"
+        class="flex justify-center bg-white min-h-[85%] mt-[82px]"
         :class="!hasCoreTemplates || !hasSalutations ? 'pt-[100px]' : ''"
     >
         <div
@@ -34,15 +34,15 @@
                 </p>
             </section>
 
-            <div v-else class="flex flex-col gap-5">
-                <section class="flex flex-col gap-2 px-6">
+            <div v-else class="flex flex-col">
+                <section class="flex flex-col gap-2 px-6 pb-5">
                     <h2>What's wrong?</h2>
                     <p>
                         Please select all issues you wish to address in your
                         email. These selections will be used to populate a
                         template.
                     </p>
-                    <div class="flex gap-2">
+                    <div class="flex gap-2 mt-2">
                         <input
                             type="text"
                             id="search-templates-input"
@@ -55,7 +55,9 @@
                 </section>
                 <hr v-if="hasCoreTemplates && hasSalutations" />
 
-                <div class="flex flex-col gap-5">
+                <div
+                    class="flex flex-col gap-5 max-h-[280px] overflow-y-scroll py-5 mb-[55px]"
+                >
                     <section
                         v-if="
                             visibleSections.length &&
@@ -110,7 +112,9 @@
                 v-if="hasCoreTemplates && hasSalutations"
                 class="fixed bottom-0 inset-x-0 z-10 bg-white"
             >
-                <div class="mx-auto max-w-[550px] px-6 pt-3 pb-5">
+                <div
+                    class="mx-auto max-w-[550px] px-6 py-5 border-gray-200 border-solid border-t-1"
+                >
                     <Button
                         class="w-full"
                         label="Next"

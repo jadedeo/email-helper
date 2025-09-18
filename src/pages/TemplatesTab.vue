@@ -1,7 +1,7 @@
 <!-- pages/TemplateTab.vue -->
 <template>
     <div
-        class="flex justify-center bg-white"
+        class="flex justify-center bg-white mt-[82px]"
         :class="isLoading ? 'h-[80%] items-center' : ''"
     >
         <div class="flex flex-col mb-6 max-w-[550px] w-full">
@@ -87,9 +87,9 @@
                                 Upload a template file or create a new document.
                             </p>
                         </div>
-                        <div class="flex gap-3">
+                        <div class="flex gap-3 justify-center">
                             <Button
-                                class="file-upload-button"
+                                class="file-upload-button !w-fit !px-3"
                                 variant="outlined"
                                 label="Upload"
                                 @button-click="triggerFileInput"
@@ -103,6 +103,7 @@
                                 />
                             </Button>
                             <Button
+                                class="!w-fit !px-3"
                                 @button-click="() => openTemplateEditorPage()"
                                 label="Create template"
                             >
