@@ -11,7 +11,7 @@
             "128": "assets/icon-128.png"
         }
     },
-    "permissions": ["windows", "scripting", "system.display", "storage"],
+    "permissions": ["storage"],
     "host_permissions": ["<all_urls>"],
     "icons": {
         "16": "assets/icon-16.png",

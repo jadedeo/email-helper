@@ -646,7 +646,6 @@ const handleCloseModal = () => {
     deleteAllTemplatesErrorMessage.value = [];
     clearHoveredSection();
     focusedSection.value = null;
-    console.log(hoveredSection.value, focusedSection.value);
 };
 
 const handleSectionHover = (sectionName) => {
