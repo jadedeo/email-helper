@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "version": "1.0.0",
     "name": "Email Helper",
-    "description": "A decentralized email template manager.",
+    "description": "A decentralized email template manager created for an MHCI capstone project at Carnegie Mellon University.",
     "action": {
         "default_popup": "index.html",
         "default_icon": {
